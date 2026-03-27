@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SDGs 예산 어노테이션 도구</title>
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1F3864;
+      --secondary: #2E4A7A;
+      --accent: #BF4F00;
+      --green: #1A6B3C;
+      --bg: #F4F6FA;
+      --card: #FFFFFF;
+      --border: #D1D9E6;
+      --text: #1A1A2E;
+      --muted: #6B7280;
+      --hold: #FEF3C7;
+      --hold-border: #D97706;
+      --rare: #FFF0E8;
+      --rare-border: #BF4F00;
+    }
+
+    body {
+      font-family: 'Malgun Gothic', '맑은 고딕', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .login-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 8px 32px rgba(31,56,100,.12);
+      text-align: center;
+    }
+    .login-card .logo { font-size: 48px; margin-bottom: 16px; }
+    .login-card h1 { font-size: 22px; color: var(--primary); margin-bottom: 6px; }
+    .login-card p { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+    .login-card label { display: block; text-align: left; font-size: 13px; font-weight: 600; color: var(--secondary); margin-bottom: 6px; }
+    .login-card input {
+      width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 15px; font-family: inherit;
+      outline: none; transition: border-color .2s;
+      margin-bottom: 20px;
+    }
+    .login-card input:focus { border-color: var(--secondary); }
+    .login-card .data-info {
+      background: #EFF6FF; border: 1px solid #BFDBFE;
+      border-radius: 8px; padding: 12px 14px;
+      font-size: 13px; color: var(--secondary);
+      text-align: left; margin-bottom: 24px;
+    }
+    .login-card .data-info strong { display: block; margin-bottom: 4px; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-left h1 { font-size: 16px; font-weight: 700; }
+    .annotator-badge {
+      background: rgba(255,255,255,.2);
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 12px;
+    }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .progress-wrap { text-align: right; }
+    .progress-label { font-size: 12px; opacity: .8; margin-bottom: 4px; }
+    .progress-bar-outer {
+      width: 180px; height: 6px;
+      background: rgba(255,255,255,.2);
+      border-radius: 3px; overflow: hidden;
+    }
+    .progress-bar-inner {
+      height: 100%; background: #4ADE80;
+      border-radius: 3px; transition: width .4s ease;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    #app-screen { display: none; }
+    .main-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ── RECORD CARD ── */
+    .record-card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(31,56,100,.08);
+      overflow: hidden;
+    }
+    .record-header {
+      background: var(--secondary);
+      color: white;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .record-header .record-meta { font-size: 13px; opacity: .85; }
+    .record-header .record-title { font-size: 16px; font-weight: 700; margin-top: 4px; }
+    .rare-badge {
+      background: var(--accent);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .record-body { padding: 20px; }
+    .field-block {
+      margin-bottom: 14px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .field-block.primary { border-color: #93C5FD; }
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      letter-spacing: .04em;
+    }
+    .field-block.primary .field-label { background: #DBEAFE; color: #1E40AF; }
+    .field-block.secondary .field-label { background: #DCFCE7; color: #15803D; }
+    .field-block.tertiary .field-label { background: #F3F4F6; color: #374151; }
+    .field-text {
+      padding: 10px 12px;
+      font-size: 14px;
+      line-height: 1.7;
+      background: white;
+    }
+    .field-empty { color: var(--muted); font-style: italic; font-size: 13px; }
+
+    /* Navigation */
+    .record-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: #FAFBFE;
+    }
+    .jump-wrap { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+    .jump-wrap input {
+      width: 56px; padding: 5px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px; font-size: 13px;
+      text-align: center; font-family: inherit;
+    }
+
+    /* ── ANNOTATION PANEL ── */
+    .annotation-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(31,56,100,.08);
+      overflow: hidden;
+    }
+    .panel-section-title {
+      background: var(--primary);
+      color: white;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .03em;
+    }
+    .panel-body { padding: 14px 16px; }
+
+    /* SDG Select */
+    .sdg-select {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background: white;
+      outline: none;
+      transition: border-color .2s;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .sdg-select:focus { border-color: var(--secondary); }
+    .sdg-select.selected { border-color: var(--secondary); background: #EFF6FF; }
+
+    /* SDG 2차 checkboxes */
+    .sdg2-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+    }
+    .sdg2-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .sdg2-item:hover { background: #F0F4FF; }
+    .sdg2-item input[type="checkbox"] { cursor: pointer; accent-color: var(--secondary); }
+    .sdg2-item.checked { background: #EFF6FF; font-weight: 600; }
+    .sdg2-item.disabled { opacity: .4; pointer-events: none; }
+
+    /* Red Tag */
+    .redtag-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .redtag-option {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all .2s;
+      text-align: center;
+    }
+    .redtag-option:hover { border-color: var(--accent); background: #FFF5F0; }
+    .redtag-option.selected { border-color: var(--accent); background: #FFF0E8; }
+    .redtag-option.selected-none { border-color: var(--green); background: #ECFDF5; }
+    .redtag-option .rt-code { font-size: 12px; font-weight: 700; color: var(--accent); }
+    .redtag-option .rt-none-code { font-size: 12px; font-weight: 700; color: var(--green); }
+    .redtag-option .rt-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* HOLD */
+    .hold-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+    }
+    .hold-toggle.active {
+      border-color: var(--hold-border);
+      background: var(--hold);
+    }
+    .hold-toggle input { accent-color: var(--hold-border); cursor: pointer; transform: scale(1.2); }
+    .hold-label { font-size: 13px; font-weight: 600; }
+    .hold-desc { font-size: 11px; color: var(--muted); }
+
+    /* Rationale */
+    textarea.rationale {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      transition: border-color .2s;
+      line-height: 1.6;
+    }
+    textarea.rationale:focus { border-color: var(--secondary); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-primary {
+      background: var(--secondary);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--primary); }
+    .btn-secondary {
+      background: white;
+      color: var(--secondary);
+      border: 1.5px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--secondary); background: #F0F4FF; }
+    .btn-success {
+      background: var(--green);
+      color: white;
+    }
+    .btn-success:hover { background: #145A32; }
+    .btn-export {
+      background: #065F46;
+      color: white;
+      width: 100%;
+    }
+    .btn-export:hover { background: #064E3B; }
+    .btn-sm { padding: 7px 13px; font-size: 13px; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .save-btn-row {
+      display: flex;
+      gap: 8px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: #FAFBFE;
+    }
+    .save-btn-row .btn { flex: 1; }
+
+    /* Status message */
+    .status-msg {
+      font-size: 12px;
+      text-align: center;
+      padding: 6px;
+      border-radius: 6px;
+      margin: 0 16px 10px;
+      display: none;
+    }
+    .status-msg.show { display: block; }
+    .status-msg.saved { background: #ECFDF5; color: #065F46; }
+    .status-msg.error { background: #FEF2F2; color: #991B1B; }
+
+    /* Progress mini-grid */
+    .mini-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      padding: 10px 16px 14px;
+    }
+    .mini-dot {
+      width: 14px; height: 14px;
+      border-radius: 3px;
+      background: #E5E7EB;
+      cursor: pointer;
+      transition: transform .1s;
+      title: '';
+    }
+    .mini-dot:hover { transform: scale(1.3); }
+    .mini-dot.done { background: #4ADE80; }
+    .mini-dot.hold { background: var(--hold-border); }
+    .mini-dot.current { background: var(--secondary); outline: 2px solid var(--primary); }
+
+    /* Export section */
+    .export-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat-box {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .stat-num { font-size: 22px; font-weight: 700; color: var(--secondary); }
+    .stat-label { font-size: 11px; color: var(--muted); }
+
+    /* Firebase sync indicator */
+    .sync-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      display: inline-block; margin-right: 5px;
+    }
+    .sync-dot.ok      { background: #4ADE80; }
+    .sync-dot.syncing { background: #FBBF24; animation: pulse .8s infinite; }
+    .sync-dot.error   { background: #F87171; }
+    .sync-dot.off     { background: #9CA3AF; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .sync-badge {
+      display: flex; align-items: center;
+      font-size: 11px; color: rgba(255,255,255,.8);
+      background: rgba(255,255,255,.1);
+      padding: 3px 9px; border-radius: 20px;
+    }
+
+    /* Firebase config section in login */
+    .firebase-section {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .firebase-section summary {
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      color: var(--secondary); padding: 8px 0;
+      user-select: none;
+    }
+    .firebase-section .fb-fields {
+      display: grid; gap: 8px; margin-top: 10px;
+    }
+    .firebase-section .fb-row { display: flex; flex-direction: column; gap: 3px; }
+    .firebase-section .fb-row label { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .firebase-section .fb-row input {
+      padding: 8px 10px; border: 1.5px solid var(--border);
+      border-radius: 6px; font-size: 12px; font-family: monospace;
+      margin-bottom: 0;
+    }
+    .firebase-section .fb-hint {
+      font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .main-container { grid-template-columns: 1fr; }
+      .annotation-panel { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="logo">🏷️</div>
+    <h1>SDGs 예산 어노테이션 도구</h1>
+    <p>경기도 지자체 세부사업설명서 SDG 라벨링 시스템</p>
+
+    <!-- Firebase Config -->
+    <details class="firebase-section" id="fb-section">
+      <summary>🔥 Firebase 자동 저장 설정 (연구자가 배포 전 입력)</summary>
+      <div class="fb-fields">
+        <div class="fb-row"><label>apiKey</label><input id="fb-apiKey" placeholder="AIzaSy..." /></div>
+        <div class="fb-row"><label>authDomain</label><input id="fb-authDomain" placeholder="your-project.firebaseapp.com" /></div>
+        <div class="fb-row"><label>databaseURL</label><input id="fb-databaseURL" placeholder="https://your-project-default-rtdb.firebaseio.com" /></div>
+        <div class="fb-row"><label>projectId</label><input id="fb-projectId" placeholder="your-project-id" /></div>
+      </div>
+      <div class="fb-hint">⚠ 설정하지 않으면 브라우저 로컬 저장만 됩니다. Firebase 설정은 index.html의 FIREBASE_CONFIG 상수에 직접 입력해도 됩니다.</div>
+    </details>
+
+    <label for="annotator-name">어노테이터 이름 (저장 키로 사용됩니다)</label>
+    <input type="text" id="annotator-name" placeholder="예: 홍길동" autocomplete="off" />
+
+    <div class="data-info" id="data-info">
+      <strong>📂 데이터 로딩 중...</strong>
+      data/pilot.json 파일을 불러오는 중입니다.
+    </div>
+
+    <button class="btn btn-primary" style="width:100%; padding:13px;" id="start-btn" disabled onclick="startSession()">
+      ▶ 라벨링 시작
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app-screen">
+  <header>
+    <div class="header-left">
+      <h1>🏷️ SDGs 어노테이션</h1>
+      <span class="annotator-badge" id="header-annotator">어노테이터: —</span>
+    </div>
+    <div class="header-right">
+      <div class="progress-wrap">
+        <div class="progress-label" id="progress-label">0 / 0 완료</div>
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" id="progress-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="sync-badge" id="sync-badge">
+        <span class="sync-dot off" id="sync-dot"></span>
+        <span id="sync-label">로컬 저장</span>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);" onclick="exportCSV()">
+        ⬇ CSV 내보내기
+      </button>
+    </div>
+  </header>
+
+  <div class="main-container">
+
+    <!-- ── LEFT: RECORD ── -->
+    <div>
+      <div class="record-card">
+        <div class="record-header">
+          <div>
+            <div class="record-meta" id="record-meta">—</div>
+            <div class="record-title" id="record-title">—</div>
+          </div>
+          <span class="rare-badge" id="rare-badge" style="display:none">희소클래스</span>
+        </div>
+        <div class="record-body">
+          <div class="field-block primary">
+            <div class="field-label">📌 사업목적 (bizPurpCn) — 핵심 참조</div>
+            <div class="field-text" id="field-purpose">—</div>
+          </div>
+          <div class="field-block secondary">
+            <div class="field-label">📋 사업내용 (bizCn) — 핵심 참조</div>
+            <div class="field-text" id="field-content">—</div>
+          </div>
+          <div class="field-block tertiary" id="plan-block">
+            <div class="field-label">📎 추진계획 (planCn) — 보조 참조 (없는 경우 많음)</div>
+            <div class="field-text" id="field-plan">—</div>
+          </div>
+        </div>
+        <div class="record-nav">
+          <button class="btn btn-secondary btn-sm" id="btn-prev" onclick="navigate(-1)">◀ 이전</button>
+          <div class="jump-wrap">
+            <span>이동:</span>
+            <input type="number" id="jump-input" min="1" placeholder="번호" />
+            <button class="btn btn-secondary btn-sm" onclick="jumpTo()">이동</button>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-next" onclick="navigate(1)">다음 ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: ANNOTATION ── -->
+    <div class="annotation-panel">
+
+      <!-- 1차 SDG -->
+      <div class="panel-card">
+        <div class="panel-section-title">① 1차 SDG (필수 — 핵심 목표 1개)</div>
+        <div class="panel-body">
+          <select class="sdg-select" id="sdg-primary" onchange="onPrimaryChange()">
+            <option value="">— 선택하세요 —</option>
+          </select>
+          <div style="font-size:11px;color:var(--muted)">사업의 주된 SDG 목표 1개를 선택. 해당 없으면 NA.</div>
+        </div>
+      </div>
+
+      <!-- 2차 SDG -->
+      <div class="panel-card">
+        <div class="panel-section-title">② 2차 SDG (선택 — 부가 목표, 최대 2개)</div>
+        <div class="panel-body">
+          <div class="sdg2-grid" id="sdg2-grid"></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">1차와 동일한 항목은 자동 비활성화. 최대 2개.</div>
+        </div>
+      </div>
+
+      <!-- Red Tag -->
+      <div class="panel-card">
+        <div class="panel-section-title">③ Red Tag</div>
+        <div class="panel-body">
+          <div class="redtag-options" id="redtag-options">
+            <div class="redtag-option" data-val="RT-NONE" onclick="selectRedTag('RT-NONE')">
+              <div class="rt-none-code">✓ RT-NONE</div>
+              <div class="rt-label">해당 없음</div>
+            </div>
+            <div class="redtag-option" data-val="A" onclick="selectRedTag('A')">
+              <div class="rt-code">Type A</div>
+              <div class="rt-label">SDG Washing</div>
+            </div>
+            <div class="redtag-option" data-val="B" onclick="selectRedTag('B')">
+              <div class="rt-code">Type B</div>
+              <div class="rt-label">예산 이상값</div>
+            </div>
+            <div class="redtag-option" data-val="C" onclick="selectRedTag('C')">
+              <div class="rt-code">Type C</div>
+              <div class="rt-label">맥락 불일치</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOLD -->
+      <div class="panel-card">
+        <div class="panel-section-title">④ HOLD</div>
+        <div class="panel-body">
+          <label class="hold-toggle" id="hold-toggle" onclick="toggleHold()">
+            <input type="checkbox" id="hold-check" onclick="event.stopPropagation()" onchange="toggleHold()" />
+            <div>
+              <div class="hold-label">⏸ HOLD — 판단 보류</div>
+              <div class="hold-desc">불확실할 때 체크 후 계속 진행. 나중에 재검토.</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- 판단 근거 -->
+      <div class="panel-card">
+        <div class="panel-section-title">⑤ 판단 근거 (한 줄 메모)</div>
+        <div class="panel-body">
+          <textarea class="rationale" id="rationale" placeholder="예: 사업목적에 온실가스 감축 명시, SDG 13 판단"></textarea>
+        </div>
+        <div class="status-msg" id="status-msg">저장됨</div>
+        <div class="save-btn-row">
+          <button class="btn btn-secondary" onclick="saveAndStay()">💾 저장</button>
+          <button class="btn btn-success" id="btn-save-next" onclick="saveAndNext()">저장 후 다음 ▶</button>
+        </div>
+      </div>
+
+      <!-- 진행 현황 -->
+      <div class="panel-card">
+        <div class="panel-section-title">진행 현황</div>
+        <div style="padding:12px 16px 4px">
+          <div class="export-stats">
+            <div class="stat-box"><div class="stat-num" id="stat-done">0</div><div class="stat-label">완료</div></div>
+            <div class="stat-box"><div class="stat-num" id="stat-hold">0</div><div class="stat-label">HOLD</div></div>
+            <div class="stat-box"><div class="stat-num" id="stat-remain">0</div><div class="stat-label">남은 건</div></div>
+          </div>
+        </div>
+        <div class="mini-grid" id="mini-grid"></div>
+        <div style="padding: 0 16px 14px">
+          <button class="btn btn-export" onclick="exportCSV()">⬇ CSV 내보내기 (연구자에게 제출)</button>
+        </div>
+      </div>
+
+    </div><!-- /annotation-panel -->
+  </div><!-- /main-container -->
+</div><!-- /app-screen -->
+
+<script>
+// ══════════════════════════════════════════
+//  FIREBASE CONFIG (연구자가 여기에 직접 입력)
+//  또는 로그인 화면 입력란 사용
+// ══════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:      '',   // 예: "AIzaSyXXXXXXX"
+  authDomain:  '',   // 예: "my-project.firebaseapp.com"
+  databaseURL: '',   // 예: "https://my-project-default-rtdb.firebaseio.com"
+  projectId:   '',   // 예: "my-project"
+};
+
+// DB 경로: annotations/{projectId}/{annotatorName}/{recordId}
+const DB_PROJECT = 'sdg_pilot_2026';  // 프로젝트 구분 키 (변경 가능)
+
+// ══════════════════════════════════════════
+//  DATA & STATE
+// ══════════════════════════════════════════
+const SDG_LIST = [
+  { val: 'SDG1',  label: 'SDG 1 — 빈곤 퇴치' },
+  { val: 'SDG2',  label: 'SDG 2 — 기아 종식' },
+  { val: 'SDG3',  label: 'SDG 3 — 건강과 웰빙' },
+  { val: 'SDG4',  label: 'SDG 4 — 양질의 교육' },
+  { val: 'SDG5',  label: 'SDG 5 — 성 평등' },
+  { val: 'SDG6',  label: 'SDG 6 — 깨끗한 물과 위생' },
+  { val: 'SDG7',  label: 'SDG 7 — 청정에너지' },
+  { val: 'SDG8',  label: 'SDG 8 — 일자리와 경제성장' },
+  { val: 'SDG9',  label: 'SDG 9 — 산업·혁신·인프라' },
+  { val: 'SDG10', label: 'SDG 10 — 불평등 감소' },
+  { val: 'SDG11', label: 'SDG 11 — 지속가능 도시' },
+  { val: 'SDG12', label: 'SDG 12 — 책임있는 소비·생산' },
+  { val: 'SDG13', label: 'SDG 13 — 기후행동' },
+  { val: 'SDG14', label: 'SDG 14 — 수중 생태계' },
+  { val: 'SDG15', label: 'SDG 15 — 육상 생태계' },
+  { val: 'SDG16', label: 'SDG 16 — 평화와 정의' },
+  { val: 'SDG17', label: 'SDG 17 — 파트너십' },
+  { val: 'NA',    label: 'NA — 해당없음' },
+];
+
+let records = [];
+let annotations = {};
+let currentIdx = 0;
+let annotatorName = '';
+const STORAGE_PREFIX = 'sdg_anno_v1_';
+let db = null;  // Firebase Realtime DB instance
+
+// ══════════════════════════════════════════
+//  FIREBASE INIT
+// ══════════════════════════════════════════
+function initFirebase() {
+  // 로그인 화면 입력값 우선, 없으면 FIREBASE_CONFIG 상수 사용
+  const cfg = {
+    apiKey:      document.getElementById('fb-apiKey').value.trim()      || FIREBASE_CONFIG.apiKey,
+    authDomain:  document.getElementById('fb-authDomain').value.trim()  || FIREBASE_CONFIG.authDomain,
+    databaseURL: document.getElementById('fb-databaseURL').value.trim() || FIREBASE_CONFIG.databaseURL,
+    projectId:   document.getElementById('fb-projectId').value.trim()   || FIREBASE_CONFIG.projectId,
+  };
+  if (!cfg.apiKey || !cfg.databaseURL) return null;  // 미설정 → 로컬 전용
+  try {
+    const app = firebase.apps.length
+      ? firebase.app()
+      : firebase.initializeApp(cfg);
+    return firebase.database(app);
+  } catch(e) {
+    console.warn('Firebase 초기화 실패:', e.message);
+    return null;
+  }
+}
+
+function setSyncStatus(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (!dot || !lbl) return;
+  dot.className = 'sync-dot ' + state;
+  lbl.textContent = label;
+}
+
+// ══════════════════════════════════════════
+//  INIT: LOAD DATA
+// ══════════════════════════════════════════
+async function loadData() {
+  try {
+    const resp = await fetch('data/pilot.json');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    records = await resp.json();
+    document.getElementById('data-info').innerHTML =
+      `<strong>✅ 데이터 로드 완료</strong>총 <b>${records.length}건</b> — 파일럿 라벨링 세트`;
+    document.getElementById('annotator-name').addEventListener('input', checkCanStart);
+  } catch(e) {
+    document.getElementById('data-info').innerHTML =
+      `<strong>❌ 데이터 로드 실패</strong>data/pilot.json 파일이 없습니다. README를 참고하세요.<br><small>${e.message}</small>`;
+    document.getElementById('data-info').style.background = '#FEF2F2';
+    document.getElementById('data-info').style.borderColor = '#FECACA';
+  }
+}
+
+function checkCanStart() {
+  const name = document.getElementById('annotator-name').value.trim();
+  document.getElementById('start-btn').disabled = !(name && records.length > 0);
+}
+
+async function startSession() {
+  annotatorName = document.getElementById('annotator-name').value.trim();
+  if (!annotatorName) return;
+
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 연결 중...';
+
+  // Firebase 초기화
+  db = initFirebase();
+
+  // 로컬 저장 데이터 우선 로드 (오프라인 대비)
+  const saved = localStorage.getItem(STORAGE_PREFIX + annotatorName);
+  annotations = saved ? JSON.parse(saved) : {};
+
+  // Firebase에서 기존 어노테이션 불러오기 (있으면 병합)
+  if (db) {
+    try {
+      const snap = await db.ref(`${DB_PROJECT}/${annotatorName}`).get();
+      if (snap.exists()) {
+        const fbData = snap.val();
+        // Firebase 데이터가 더 최신이면 병합 (annotated_at 비교)
+        Object.entries(fbData).forEach(([id, ann]) => {
+          const local = annotations[id];
+          if (!local || new Date(ann.annotated_at) > new Date(local.annotated_at)) {
+            annotations[id] = ann;
+          }
+        });
+        localStorage.setItem(STORAGE_PREFIX + annotatorName, JSON.stringify(annotations));
+      }
+      setSyncStatus('ok', '🔥 Firebase 연결됨');
+      // 실시간 변경 감지 (다른 기기에서 작업 중인 경우 반영)
+      db.ref(`${DB_PROJECT}/${annotatorName}`).on('child_changed', snap => {
+        annotations[snap.key] = snap.val();
+        localStorage.setItem(STORAGE_PREFIX + annotatorName, JSON.stringify(annotations));
+        updateStats(); updateMiniGrid();
+      });
+    } catch(e) {
+      console.warn('Firebase 로드 실패, 로컬 사용:', e.message);
+      setSyncStatus('error', '⚠ Firebase 오류 (로컬 저장)');
+      db = null;
+    }
+  } else {
+    setSyncStatus('off', '로컬 저장 전용');
+  }
+
+  // Find first incomplete record
+  currentIdx = 0;
+  for (let i = 0; i < records.length; i++) {
+    if (!annotations[records[i].id || i]) { currentIdx = i; break; }
+    if (i === records.length - 1) currentIdx = records.length - 1;
+  }
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('header-annotator').textContent = '어노테이터: ' + annotatorName;
+
+  buildSDGSelects();
+  buildMiniGrid();
+  renderRecord();
+}
+
+// ══════════════════════════════════════════
+//  BUILD UI
+// ══════════════════════════════════════════
+function buildSDGSelects() {
+  const sel = document.getElementById('sdg-primary');
+  sel.innerHTML = '<option value="">— 선택하세요 —</option>';
+  SDG_LIST.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.val;
+    opt.textContent = s.label;
+    sel.appendChild(opt);
+  });
+
+  const grid = document.getElementById('sdg2-grid');
+  grid.innerHTML = '';
+  SDG_LIST.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'sdg2-item';
+    div.dataset.val = s.val;
+    div.innerHTML = `<input type="checkbox" id="sdg2_${s.val}" value="${s.val}" onchange="onSecondaryChange()"> <label for="sdg2_${s.val}" style="cursor:pointer">${s.label}</label>`;
+    grid.appendChild(div);
+  });
+}
+
+function buildMiniGrid() {
+  const grid = document.getElementById('mini-grid');
+  grid.innerHTML = '';
+  records.forEach((r, i) => {
+    const d = document.createElement('div');
+    d.className = 'mini-dot';
+    d.title = `${i+1}번: ${r['세부사업명'] || ''}`;
+    d.onclick = () => { currentIdx = i; renderRecord(); };
+    d.dataset.idx = i;
+    grid.appendChild(d);
+  });
+  updateMiniGrid();
+}
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
+function renderRecord() {
+  const r = records[currentIdx];
+  if (!r) return;
+  const id = r.id !== undefined ? r.id : currentIdx;
+
+  // Header
+  const year = r['회계연도'] || '';
+  const muni = r['지자체명'] || '';
+  const type = r['type'] || r['지자체유형'] || '';
+  document.getElementById('record-meta').textContent =
+    `#${currentIdx + 1} / ${records.length}   |   ${year}년   ${muni}   ${type ? '[' + type + ']' : ''}`;
+  document.getElementById('record-title').textContent = r['세부사업명'] || '(사업명 없음)';
+
+  // Rare badge
+  const rareFlag = r['rare_class_flag'] || r['rare_flag'] || 'None';
+  const rareBadge = document.getElementById('rare-badge');
+  if (rareFlag && rareFlag !== 'None' && rareFlag !== 'none') {
+    rareBadge.textContent = `희소클래스: ${rareFlag}`;
+    rareBadge.style.display = 'inline-block';
+  } else {
+    rareBadge.style.display = 'none';
+  }
+
+  // Text fields
+  const purpose = r['사업목적'] || '';
+  const content = r['사업내용'] || '';
+  const plan    = r['추진계획'] || '';
+
+  document.getElementById('field-purpose').innerHTML =
+    purpose ? escHtml(purpose) : '<span class="field-empty">(내용 없음)</span>';
+  document.getElementById('field-content').innerHTML =
+    content ? escHtml(content) : '<span class="field-empty">(내용 없음)</span>';
+
+  if (plan) {
+    document.getElementById('field-plan').innerHTML = escHtml(plan);
+    document.getElementById('plan-block').style.display = 'block';
+  } else {
+    document.getElementById('plan-block').style.display = 'none';
+  }
+
+  // Load existing annotation
+  const ann = annotations[id] || {};
+  document.getElementById('sdg-primary').value = ann.sdg_primary || '';
+  document.getElementById('sdg-primary').className =
+    'sdg-select' + (ann.sdg_primary ? ' selected' : '');
+
+  // Clear secondaries
+  SDG_LIST.forEach(s => {
+    const cb = document.getElementById('sdg2_' + s.val);
+    if (cb) cb.checked = false;
+    const item = cb ? cb.closest('.sdg2-item') : null;
+    if (item) { item.classList.remove('checked', 'disabled'); }
+  });
+  (ann.sdg_secondary || []).forEach(v => {
+    const cb = document.getElementById('sdg2_' + v);
+    if (cb) { cb.checked = true; cb.closest('.sdg2-item').classList.add('checked'); }
+  });
+  syncSecondaryDisabled(ann.sdg_primary);
+
+  // Red tag
+  document.querySelectorAll('.redtag-option').forEach(el => {
+    el.classList.remove('selected', 'selected-none');
+  });
+  if (ann.red_tag) {
+    const el = document.querySelector(`.redtag-option[data-val="${ann.red_tag}"]`);
+    if (el) el.classList.add(ann.red_tag === 'RT-NONE' ? 'selected-none' : 'selected');
+  }
+
+  // HOLD
+  const holdCheck = document.getElementById('hold-check');
+  holdCheck.checked = !!(ann.hold);
+  document.getElementById('hold-toggle').classList.toggle('active', !!(ann.hold));
+
+  // Rationale
+  document.getElementById('rationale').value = ann.rationale || '';
+
+  // Nav buttons
+  document.getElementById('btn-prev').disabled = currentIdx === 0;
+  document.getElementById('btn-next').disabled = currentIdx === records.length - 1;
+  document.getElementById('btn-save-next').disabled = currentIdx === records.length - 1;
+  document.getElementById('jump-input').value = currentIdx + 1;
+
+  // Status msg clear
+  hideStatus();
+  updateStats();
+  updateMiniGrid();
+}
+
+// ══════════════════════════════════════════
+//  INTERACTION
+// ══════════════════════════════════════════
+function onPrimaryChange() {
+  const val = document.getElementById('sdg-primary').value;
+  document.getElementById('sdg-primary').className = 'sdg-select' + (val ? ' selected' : '');
+  syncSecondaryDisabled(val);
+}
+
+function syncSecondaryDisabled(primaryVal) {
+  let checkedCount = 0;
+  SDG_LIST.forEach(s => {
+    const cb = document.getElementById('sdg2_' + s.val);
+    if (!cb) return;
+    const item = cb.closest('.sdg2-item');
+    if (cb.checked) checkedCount++;
+    if (s.val === primaryVal) {
+      item.classList.add('disabled');
+      cb.checked = false;
+    } else {
+      item.classList.remove('disabled');
+    }
+  });
+  // Disable unchecked if already 2 checked
+  SDG_LIST.forEach(s => {
+    const cb = document.getElementById('sdg2_' + s.val);
+    if (!cb) return;
+    const item = cb.closest('.sdg2-item');
+    if (!cb.checked && checkedCount >= 2 && !item.classList.contains('disabled')) {
+      item.classList.add('disabled');
+    } else if (!item.classList.contains('disabled') || cb.checked) {
+      // keep
+    }
+  });
+}
+
+function onSecondaryChange() {
+  const checked = [];
+  SDG_LIST.forEach(s => {
+    const cb = document.getElementById('sdg2_' + s.val);
+    if (cb && cb.checked) checked.push(s.val);
+  });
+  const primaryVal = document.getElementById('sdg-primary').value;
+  SDG_LIST.forEach(s => {
+    const cb = document.getElementById('sdg2_' + s.val);
+    if (!cb) return;
+    const item = cb.closest('.sdg2-item');
+    item.classList.toggle('checked', cb.checked);
+    if (s.val === primaryVal) { item.classList.add('disabled'); return; }
+    if (!cb.checked && checked.length >= 2) {
+      item.classList.add('disabled');
+    } else {
+      item.classList.remove('disabled');
+    }
+  });
+}
+
+function selectRedTag(val) {
+  document.querySelectorAll('.redtag-option').forEach(el => {
+    el.classList.remove('selected', 'selected-none');
+  });
+  const el = document.querySelector(`.redtag-option[data-val="${val}"]`);
+  if (el) el.classList.add(val === 'RT-NONE' ? 'selected-none' : 'selected');
+}
+
+function toggleHold() {
+  const cb = document.getElementById('hold-check');
+  cb.checked = !cb.checked;
+  document.getElementById('hold-toggle').classList.toggle('active', cb.checked);
+}
+
+// ══════════════════════════════════════════
+//  SAVE
+// ══════════════════════════════════════════
+function collectAnnotation() {
+  const primary = document.getElementById('sdg-primary').value;
+  const secondary = [];
+  SDG_LIST.forEach(s => {
+    const cb = document.getElementById('sdg2_' + s.val);
+    if (cb && cb.checked) secondary.push(s.val);
+  });
+  const redTagEl = document.querySelector('.redtag-option.selected, .redtag-option.selected-none');
+  const redTag = redTagEl ? redTagEl.dataset.val : '';
+  const hold = document.getElementById('hold-check').checked;
+  const rationale = document.getElementById('rationale').value.trim();
+  return { sdg_primary: primary, sdg_secondary: secondary, red_tag: redTag, hold, rationale };
+}
+
+function saveAnnotation() {
+  const r = records[currentIdx];
+  const id = r.id !== undefined ? r.id : currentIdx;
+  const ann = collectAnnotation();
+
+  if (!ann.sdg_primary && !ann.hold) {
+    showStatus('1차 SDG를 선택하거나 HOLD를 체크하세요.', 'error');
+    return false;
+  }
+  if (!ann.red_tag && !ann.hold) {
+    showStatus('Red Tag를 선택하거나 HOLD를 체크하세요.', 'error');
+    return false;
+  }
+
+  ann.annotated_at = new Date().toISOString();
+  annotations[id] = ann;
+
+  // 1) 로컬 저장 (항상)
+  localStorage.setItem(STORAGE_PREFIX + annotatorName, JSON.stringify(annotations));
+
+  // 2) Firebase 저장 (연결된 경우)
+  if (db) {
+    setSyncStatus('syncing', '동기화 중...');
+    db.ref(`${DB_PROJECT}/${annotatorName}/${id}`).set(ann)
+      .then(() => setSyncStatus('ok', '🔥 동기화 완료'))
+      .catch(e => {
+        console.warn('Firebase 저장 실패:', e.message);
+        setSyncStatus('error', '⚠ 동기화 실패 (로컬 저장됨)');
+      });
+  }
+
+  showStatus(db ? '✓ 저장 및 Firebase 동기화' : '✓ 저장됨 (로컬)', 'saved');
+  updateStats();
+  updateMiniGrid();
+  return true;
+}
+
+function saveAndStay() { saveAnnotation(); }
+function saveAndNext() {
+  if (saveAnnotation()) navigate(1);
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function navigate(dir) {
+  const next = currentIdx + dir;
+  if (next < 0 || next >= records.length) return;
+  currentIdx = next;
+  renderRecord();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function jumpTo() {
+  const val = parseInt(document.getElementById('jump-input').value) - 1;
+  if (isNaN(val) || val < 0 || val >= records.length) return;
+  currentIdx = val;
+  renderRecord();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+  if (e.key === 'Enter' && e.ctrlKey) saveAndNext();
+  if (e.key === 's' && e.ctrlKey) { e.preventDefault(); saveAndStay(); }
+});
+
+// ══════════════════════════════════════════
+//  STATS & MINI-GRID
+// ══════════════════════════════════════════
+function updateStats() {
+  const total  = records.length;
+  const done   = Object.keys(annotations).length;
+  const holds  = Object.values(annotations).filter(a => a.hold).length;
+  const remain = total - done;
+
+  document.getElementById('stat-done').textContent   = done;
+  document.getElementById('stat-hold').textContent   = holds;
+  document.getElementById('stat-remain').textContent = remain;
+  document.getElementById('progress-label').textContent = `${done} / ${total} 완료`;
+  document.getElementById('progress-bar').style.width   = `${total ? (done/total*100) : 0}%`;
+}
+
+function updateMiniGrid() {
+  records.forEach((r, i) => {
+    const id  = r.id !== undefined ? r.id : i;
+    const ann = annotations[id];
+    const dot = document.querySelector(`.mini-dot[data-idx="${i}"]`);
+    if (!dot) return;
+    dot.classList.remove('done', 'hold', 'current');
+    if (i === currentIdx) dot.classList.add('current');
+    else if (ann && ann.hold) dot.classList.add('hold');
+    else if (ann) dot.classList.add('done');
+  });
+}
+
+// ══════════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════════
+function exportCSV() {
+  const done = Object.keys(annotations).length;
+  if (done === 0) { alert('아직 저장된 어노테이션이 없습니다.'); return; }
+
+  const cols = [
+    'sample_id','회계연도','지자체명','세부사업명','지자체유형','rare_class_flag',
+    'sdg_primary','sdg_secondary','red_tag','hold','rationale','annotated_at'
+  ];
+  const rows = [cols.join(',')];
+
+  records.forEach((r, i) => {
+    const id  = r.id !== undefined ? r.id : i;
+    const ann = annotations[id];
+    if (!ann) return;
+    const row = [
+      csvCell(r['sample_id'] || id),
+      csvCell(r['회계연도'] || ''),
+      csvCell(r['지자체명'] || ''),
+      csvCell(r['세부사업명'] || ''),
+      csvCell(r['type'] || r['지자체유형'] || ''),
+      csvCell(r['rare_class_flag'] || 'None'),
+      csvCell(ann.sdg_primary || ''),
+      csvCell((ann.sdg_secondary || []).join('|')),
+      csvCell(ann.red_tag || ''),
+      csvCell(ann.hold ? 'TRUE' : 'FALSE'),
+      csvCell(ann.rationale || ''),
+      csvCell(ann.annotated_at || ''),
+    ];
+    rows.push(row.join(','));
+  });
+
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `annotations_${annotatorName}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>');
+}
+function csvCell(v) {
+  const s = String(v).replace(/"/g, '""');
+  return `"${s}"`;
+}
+function showStatus(msg, type) {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.className = `status-msg show ${type}`;
+  clearTimeout(window._statusTimer);
+  window._statusTimer = setTimeout(hideStatus, 3000);
+}
+function hideStatus() {
+  document.getElementById('status-msg').classList.remove('show');
+}
+
+// ══════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════
+loadData();
+</script>
+</body>
+</html>
