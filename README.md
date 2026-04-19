@@ -67,3 +67,98 @@ a3 = pd.read_csv('annotations_어노테이터3_날짜.csv')
 
 # sample_id 기준으로 병합 후 fleiss_kappa 계산
 ```
+
+---
+
+# 🆕 v2 (2026-04) — 5P + AI Top-3 + 3-tier
+
+v1(17개 병렬 버튼)은 `index.html`로 유지하되, 본 라벨링용 v2는 별도 파일입니다.
+
+## v2 파일 구조
+
+```
+annotation_tool/
+├── index.html                    ← v1 (파일럿 50건, 유지)
+├── index_v2.html                 ← v2 (본 라벨링 1,200건)
+├── generate_assignments.py       ← 1,200건 → 3명 층화 분할 스크립트
+├── data/
+│   ├── pilot.json                ← v1 파일럿 데이터
+│   ├── assignments.json          ← ★ v2 선행: 어노테이터별 할당
+│   ├── stage1_pool.json          ← Stage 1 Blind 300건 레코드
+│   ├── stage2_pool.json          ← Stage 2 검수 900건 레코드
+│   └── ai_prelabels.json         ← GPT-4o 사전 분류 Top-3 (Stage 2용)
+└── README.md
+```
+
+## v2 준비 절차 (연구자)
+
+### 1. 할당 파일 생성 (최초 1회)
+
+```bash
+cd annotation_tool/
+python generate_assignments.py
+# 결과: data/assignments.json, stage1_pool.json, stage2_pool.json
+```
+
+분할 규칙:
+- Stage 1 Blind: **300건 × 3명 전원 동일** (앵커 편향 측정)
+- Stage 2 검수: **3명이 270건씩 분담 + 교차 30건씩 × 3** (총 900건)
+
+### 2. AI Pre-labeling 생성 (Stage 2 시작 전)
+
+```bash
+python ../ai_prelabeling/prelabel_gpt4o.py  # 별도 스크립트
+# 결과: data/ai_prelabels.json
+```
+
+`ai_prelabels.json` 스키마:
+```json
+{
+  "57": [
+    {"sdg": "SDG13", "prob": 0.78},
+    {"sdg": "SDG11", "prob": 0.15},
+    {"sdg": "SDG7",  "prob": 0.04}
+  ],
+  "58": [ ... ]
+}
+```
+
+## v2 어노테이터 사용법
+
+1. 배포 URL + `index_v2.html` 접속
+2. 어노테이터 코드(A/B/C) 선택 + Stage(1/2) 선택
+3. 한 건씩 라벨링:
+   - **Stage 1 (Blind)**: 5P → SDG 2단계 직접 선택
+   - **Stage 2 (검수)**: AI Top-3 중 선택 or "기타" → 5P 직접
+   - **확신도**: 확실함 / 애매함(추가 SDG 1~3개) / 모르겠음(skip)
+   - **Red Tag**: RT-NONE / A / B / C
+   - **판단 근거**: 한 줄 메모
+4. `Ctrl+S` 저장 / `Ctrl+Enter` 저장 후 다음
+5. 완료 후 "CSV 내보내기" → 연구자 제출
+
+## v2 Firebase 저장 경로
+
+`sdg_main_2026/stage{1|2}/{annotatorCode}/{sample_id}` (v1과 별도 경로)
+
+## v2 저장 스키마
+
+```json
+{
+  "sample_id": 57,
+  "annotator": "A",
+  "stage": 1,
+  "sdgPath": {
+    "p5": "Planet",
+    "sdg": "SDG13",
+    "additionalSdgs": ["SDG11"]
+  },
+  "aiTopK": [...],             // Stage 2만, Stage 1은 null
+  "chosenFromAI": true,         // AI 후보 중 선택 여부
+  "aiRank": 1,                  // 몇 순위 선택 (null/1/2/3)
+  "tier": "certain",            // certain/ambiguous/unknown
+  "redTag": "RT-NONE",
+  "rationale": "...",
+  "timestamp": "2026-06-15T14:23:45.000Z",
+  "durationSec": 87
+}
+```

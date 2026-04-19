@@ -1,0 +1,13 @@
+# Firebase 키 등 민감정보는 HTML 내부이지만 커밋 전 검토
+# 로컬 임시
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+
+# 원본 데이터 (엑셀은 크기 문제로 제외)
+data/*.xlsx
+data/*.csv
+
+# 체크포인트
+_checkpoint.jsonl
