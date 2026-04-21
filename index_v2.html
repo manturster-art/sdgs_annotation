@@ -94,6 +94,7 @@
     }
     .stage-badge.s1 { background: #F59E0B; color: white; }
     .stage-badge.s2 { background: #10B981; color: white; }
+    .stage-badge.s-pilot { background: #8B5CF6; color: white; }
     .header-right { display: flex; align-items: center; gap: 12px; }
     .progress-wrap { text-align: right; }
     .progress-label { font-size: 12px; opacity: .8; margin-bottom: 4px; }
@@ -233,13 +234,17 @@
     }
     .sdg-btn {
       border: 1.5px solid var(--border); background: white;
-      border-radius: 8px; padding: 10px; cursor: pointer;
-      text-align: left; font-family: inherit; font-size: 12px;
-      font-weight: 600; transition: all .15s;
+      border-radius: 8px; padding: 10px 12px; cursor: pointer;
+      text-align: left; font-family: inherit; transition: all .15s;
+      display: flex; flex-direction: column; gap: 3px;
     }
     .sdg-btn:hover { border-color: var(--secondary); background: #F0F4FF; }
     .sdg-btn.selected { border-color: var(--secondary); background: #EFF6FF; color: var(--primary); }
     .sdg-btn.additional { border-color: var(--green); background: #ECFDF5; color: #065F46; }
+    .sdg-btn .sdg-btn-title { font-size: 12px; font-weight: 700; line-height: 1.35; }
+    .sdg-btn .sdg-btn-desc  { font-size: 10.5px; font-weight: 400; color: var(--muted); line-height: 1.4; }
+    .sdg-btn.selected .sdg-btn-desc { color: var(--secondary); }
+    .sdg-btn.additional .sdg-btn-desc { color: #065F46; }
     .sdg-empty { grid-column: 1/-1; padding: 10px; text-align: center; color: var(--muted); font-size: 12px; font-style: italic; }
 
     /* 3-tier */
@@ -340,6 +345,141 @@
       .main-container { grid-template-columns: 1fr; }
       .p5-grid { grid-template-columns: repeat(5, 1fr); }
     }
+
+    /* ─── NA (해당 없음) 이유 선택 박스 ─── */
+    .na-reason-box {
+      margin-top: 10px; padding: 10px 12px;
+      border: 1.5px dashed #9CA3AF; border-radius: 8px;
+      background: #F9FAFB;
+      display: none;
+    }
+    .na-reason-box.show { display: block; }
+    .na-reason-title {
+      font-size: 12px; font-weight: 700; color: #374151;
+      margin-bottom: 6px;
+    }
+    .na-reason-row {
+      display: flex; align-items: flex-start; gap: 8px; padding: 4px 0;
+      font-size: 12px; color: #1F2937; line-height: 1.5; cursor: pointer;
+    }
+    .na-reason-row input[type=radio] {
+      margin-top: 3px; cursor: pointer; accent-color: #374151;
+      flex-shrink: 0;
+    }
+    .na-reason-row label { cursor: pointer; flex: 1; }
+    .na-reason-row .na-tag {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 10px; margin-right: 4px;
+      vertical-align: middle;
+    }
+    .na-reason-row .na-tag.outside { background: #DBEAFE; color: #1E40AF; }
+    .na-reason-row .na-tag.unsure  { background: #FEE2E2; color: #991B1B; }
+
+    /* ─── Nexus 체크리스트 (v1.6) ─── */
+    .nexus-checklist {
+      padding: 10px 12px; border: 1.5px dashed #10B981;
+      border-radius: 8px; background: #ECFDF5;
+    }
+    .nexus-title {
+      font-size: 12px; font-weight: 700; color: #065F46;
+      margin-bottom: 6px;
+    }
+    .nexus-q {
+      font-size: 11.5px; color: #1F2937;
+      padding: 3px 0 3px 18px; line-height: 1.55;
+      position: relative;
+    }
+    .nexus-q::before {
+      content: "☐"; position: absolute; left: 2px; top: 3px;
+      color: #059669; font-weight: bold;
+    }
+    .nexus-note {
+      font-size: 11px; color: #6B7280; margin-top: 6px;
+      padding-top: 6px; border-top: 1px dashed #D1FAE5;
+    }
+
+    /* ─── M-01 수혜자/제공자 구분 체크리스트 ─── */
+    .beneficiary-card {
+      margin: 0 20px 16px; padding: 14px 16px;
+      background: #FFFBEB; border: 1.5px solid #FCD34D;
+      border-radius: 10px; transition: background .2s, border-color .2s;
+    }
+    .beneficiary-card.done {
+      background: #F0FDF4; border-color: #86EFAC;
+    }
+    .beneficiary-title {
+      font-size: 13px; font-weight: 700; color: #92400E;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .beneficiary-card.done .beneficiary-title { color: #065F46; }
+    .beneficiary-title .guide-hint {
+      margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 500;
+    }
+    .beneficiary-check-row {
+      display: flex; align-items: flex-start; gap: 8px; padding: 4px 0;
+      font-size: 12px; color: #78350F; line-height: 1.5;
+    }
+    .beneficiary-card.done .beneficiary-check-row { color: #065F46; }
+    .beneficiary-check-row input[type=checkbox] {
+      margin-top: 3px; cursor: pointer; accent-color: #D97706;
+      width: 14px; height: 14px; flex-shrink: 0;
+    }
+    .beneficiary-check-row label { cursor: pointer; flex: 1; }
+    .beneficiary-subrow {
+      margin-left: 22px; margin: 4px 0 6px 22px;
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .beneficiary-radio {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 11px; color: #78350F; cursor: pointer;
+    }
+    .beneficiary-card.done .beneficiary-radio { color: #065F46; }
+    .beneficiary-radio input[type=radio] { accent-color: #D97706; cursor: pointer; }
+    .beneficiary-hint {
+      margin-top: 6px; font-size: 11px; color: #92400E; font-style: italic;
+      padding-left: 22px; line-height: 1.5;
+    }
+    .beneficiary-card.done .beneficiary-hint { color: #065F46; }
+
+    /* ─── M-02 SDG 혼동 가드 토스트 ─── */
+    .sdg-guard-toast {
+      position: fixed; top: 80px; right: 20px; z-index: 500;
+      max-width: 380px; width: calc(100vw - 40px);
+      background: white; border: 2px solid #F59E0B;
+      border-radius: 12px; padding: 14px 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+      display: none;
+    }
+    .sdg-guard-toast.show {
+      display: block; animation: guardSlide .35s ease;
+    }
+    @keyframes guardSlide {
+      from { transform: translateX(420px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+    .sdg-guard-toast .guard-head {
+      font-size: 13px; font-weight: 700; color: #92400E;
+      margin-bottom: 6px;
+    }
+    .sdg-guard-toast .guard-body {
+      font-size: 12px; color: var(--text); line-height: 1.6;
+      margin-bottom: 10px; white-space: normal;
+    }
+    .sdg-guard-toast .guard-actions {
+      display: flex; gap: 6px;
+    }
+    .sdg-guard-toast .guard-actions .btn-sm {
+      flex: 1; font-size: 12px; padding: 7px 10px;
+    }
+    .btn-guard-keep {
+      background: #FEF3C7; color: #92400E;
+      border: 1px solid #F59E0B;
+    }
+    .btn-guard-keep:hover { background: #FDE68A; }
+    .btn-guard-rechoose {
+      background: var(--secondary); color: white; border: none;
+    }
+    .btn-guard-rechoose:hover { background: var(--primary); }
   </style>
 </head>
 <body>
@@ -363,16 +503,21 @@
       <div class="fb-hint">⚠ 설정하지 않으면 브라우저 로컬 저장만 됩니다.</div>
     </details>
 
-    <label for="annotator-name">어노테이터 코드 (A/B/C)</label>
+    <label for="annotator-full-name">본인 이름</label>
+    <input type="text" id="annotator-full-name" placeholder="예: 박정진" autocomplete="off" />
+
+    <label for="annotator-name">할당 슬롯 (A/B/C) <span id="slot-auto-note" style="font-size:11px; color:var(--muted); font-weight:500;"></span></label>
     <select id="annotator-name">
-      <option value="">— 선택하세요 —</option>
-      <option value="A">어노테이터 A</option>
-      <option value="B">어노테이터 B</option>
-      <option value="C">어노테이터 C</option>
+      <option value="">— 선택하세요 (이름 입력 시 자동 매칭) —</option>
+      <option value="A">슬롯 A</option>
+      <option value="B">슬롯 B</option>
+      <option value="C">슬롯 C</option>
     </select>
 
-    <label for="stage-select">Stage 선택</label>
+    <label for="stage-select">모드 선택</label>
     <select id="stage-select">
+      <option value="">— 선택하세요 —</option>
+      <option value="pilot">🧪 파일럿 (50건) — v1 비교용 재라벨링</option>
       <option value="1">Stage 1 — Blind (AI 숨김, 300건)</option>
       <option value="2">Stage 2 — 검수 (AI Top-3 노출, 300~330건)</option>
     </select>
@@ -436,6 +581,40 @@
             <div class="field-text" id="field-plan">—</div>
           </div>
         </div>
+
+        <!-- M-01: 수혜자/제공자 구분 체크리스트 (파일럿 IAA 피드백 반영, v1.5 간소화) -->
+        <div class="beneficiary-card" id="beneficiary-card">
+          <div class="beneficiary-title">
+            🎯 라벨링 체크리스트 (권장)
+            <span class="guide-hint">체크 안 해도 저장 가능 · 분석용 기록</span>
+          </div>
+          <div class="beneficiary-check-row" style="padding-bottom:2px">
+            <label>① <strong>최종 수혜자</strong>의 유형을 선택하세요 (선택 시 자동으로 "식별함" 표시)</label>
+          </div>
+          <div class="beneficiary-subrow">
+            <label class="beneficiary-radio">
+              <input type="radio" name="bene-type" value="general" onchange="updateBeneficiaryState()"> 시민 전체
+            </label>
+            <label class="beneficiary-radio">
+              <input type="radio" name="bene-type" value="vulnerable" onchange="updateBeneficiaryState()"> 취약계층 (저소득·노약자)
+            </label>
+            <label class="beneficiary-radio">
+              <input type="radio" name="bene-type" value="specific" onchange="updateBeneficiaryState()"> 특정 집단 (여성·아동·지역 등)
+            </label>
+            <label class="beneficiary-radio">
+              <input type="radio" name="bene-type" value="na" onchange="updateBeneficiaryState()"> 해당없음 (내부 행정·제공자 중심 사업)
+            </label>
+          </div>
+          <div class="beneficiary-check-row">
+            <input type="checkbox" id="chk-provider-aware" onchange="updateBeneficiaryState()">
+            <label for="chk-provider-aware">② <strong>'제공자'</strong>(공무원·업체·기관)를 수혜자로 착각하지 않았는가?</label>
+          </div>
+          <div class="beneficiary-hint">
+            예시: "공무원 SDG 교육" → 수혜자는 <strong>공무원(제공자 역할)</strong>이 아니라 해당 정책의 <strong>시민 최종 수혜자</strong>에 초점.<br>
+            행정운영비·내부관리는 "해당없음" 선택 후 SDG를 NA-OUTSIDE로 설정.
+          </div>
+        </div>
+
         <div class="record-nav">
           <button class="btn btn-secondary btn-sm" id="btn-prev" onclick="navigate(-1)">◀ 이전</button>
           <div class="jump-wrap">
@@ -469,7 +648,7 @@
 
       <!-- 5P 계층 선택 -->
       <div class="panel-card" id="manual-panel">
-        <div class="panel-section-title" id="manual-title">① 주 SDG (5P → SDG 2단계)</div>
+        <div class="panel-section-title" id="manual-title">① 주목표 SDG · Principal (5P → SDG 2단계)</div>
         <div class="panel-body">
           <div class="p5-grid" id="p5-grid">
             <button class="p5-btn p-people"      onclick="selectP5('People')"><span class="p5-emoji">👥</span>People</button>
@@ -481,34 +660,68 @@
           <div class="sdg-grid" id="sdg-grid">
             <div class="sdg-empty">↑ 먼저 5P 영역을 선택하세요</div>
           </div>
-          <div class="panel-hint">주 SDG가 정해지지 않으면 "해당 없음(NA)"을 3-tier에서 '모르겠음'으로 처리하거나, 아래 해당없음 버튼을 누르세요.</div>
+          <div class="panel-hint">17개 목표에 해당하지 않는 사업(행정운영비·내부관리 등)은 아래 "해당 없음" 선택 후 <strong>미분류 사유</strong>를 명시하세요.</div>
           <button class="btn btn-secondary btn-sm" style="width:100%; margin-top:8px" onclick="selectSdg('NA', null)">🚫 해당 없음 (NA)</button>
+
+          <!-- NA 선택 시에만 표시: 미분류 사유 라디오 -->
+          <div class="na-reason-box" id="na-reason-box">
+            <div class="na-reason-title">🔍 해당 없음(NA) 사유 선택 (필수)</div>
+            <label class="na-reason-row">
+              <input type="radio" name="na-reason" value="outside" onchange="selectNaReason('outside')">
+              <span>
+                <span class="na-tag outside">NA-OUTSIDE</span>
+                <strong>17개 목표에 해당하지 않음</strong> — 행정운영비, 인건비, 내부관리 경비, 세출 표시계정 등 SDG와 직접 관련 없는 사업
+              </span>
+            </label>
+            <label class="na-reason-row">
+              <input type="radio" name="na-reason" value="unsure" onchange="selectNaReason('unsure')">
+              <span>
+                <span class="na-tag unsure">NA-UNSURE</span>
+                <strong>판단 불가</strong> — 사업명·내용만으로는 어느 SDG인지 판정하기 어려움 (정보 부족·모호)
+              </span>
+            </label>
+          </div>
         </div>
       </div>
 
       <!-- 3-tier 확신도 -->
       <div class="panel-card">
-        <div class="panel-section-title">② 확신도 (3-tier)</div>
+        <div class="panel-section-title">② 주목표 확신도 (3-tier)</div>
         <div class="panel-body">
           <div class="tier-grid" id="tier-grid">
             <button class="tier-btn t-certain" onclick="selectTier('certain')">
               <span class="tier-emoji">✅</span>확실함
-              <span style="font-size:10px;color:var(--muted)">1개 확정</span>
+              <span style="font-size:10px;color:var(--muted)">주목표만 확정</span>
             </button>
             <button class="tier-btn t-ambiguous" onclick="selectTier('ambiguous')">
               <span class="tier-emoji">❓</span>애매함
-              <span style="font-size:10px;color:var(--muted)">추가 SDG 2~3개</span>
+              <span style="font-size:10px;color:var(--muted)">주목표도 불확실</span>
             </button>
             <button class="tier-btn t-unknown" onclick="selectTier('unknown')">
               <span class="tier-emoji">🚫</span>모르겠음
               <span style="font-size:10px;color:var(--muted)">Skip → 재판정</span>
             </button>
           </div>
-          <!-- 애매함일 때 추가 SDG 선택 -->
-          <div id="additional-panel" style="display:none; margin-top:12px">
-            <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px">
-              추가 SDG (최대 3개 — 같이 해당되는 목표)
-            </div>
+          <div class="panel-hint" style="margin-top:6px">
+            "확실함"은 주목표 하나가 명확하다는 뜻입니다. 그래도 연계목표(③)는 독립적으로 검토하세요.
+          </div>
+        </div>
+      </div>
+
+      <!-- 연계목표 SDGs (Significant · Nexus) — 독립 섹션 -->
+      <div class="panel-card" id="significant-card">
+        <div class="panel-section-title">
+          ③ 연계목표 SDGs · Significant (Nexus — 0~2개)
+        </div>
+        <div class="panel-body">
+          <div class="nexus-checklist">
+            <div class="nexus-title">🔗 Nexus 체크리스트 — 아래 3문항 중 1개 이상 YES이면 연계목표를 추가하세요</div>
+            <div class="nexus-q">Q1. 수혜자가 2개 이상 SDG 영역(People/Prosperity/Planet/Peace/Partnership)에 걸쳐 있는가?</div>
+            <div class="nexus-q">Q2. 사업 수단(인프라·훈련·플랫폼 등)이 주목표 외 다른 SDG에 <strong>기여 또는 저해</strong>하는가?</div>
+            <div class="nexus-q">Q3. 사업목적 텍스트에 2개 이상 SDG 키워드(예: 기후+에너지, 교육+고용)가 명시되는가?</div>
+            <div class="nexus-note">※ 모두 NO이면 <strong>연계목표 없이 저장</strong>하세요 (주목표만). "혹시 모르니 추가"는 모델 학습 오류를 유발합니다.</div>
+          </div>
+          <div id="additional-panel" style="margin-top:10px">
             <div class="p5-grid" style="grid-template-columns:repeat(5,1fr)">
               <button class="p5-btn p-people"      onclick="selectAddP5('People')"><span class="p5-emoji">👥</span>People</button>
               <button class="p5-btn p-prosperity"  onclick="selectAddP5('Prosperity')"><span class="p5-emoji">💼</span>Prosperity</button>
@@ -517,16 +730,16 @@
               <button class="p5-btn p-partnership" onclick="selectAddP5('Partnership')"><span class="p5-emoji">🤝</span>Partnership</button>
             </div>
             <div class="sdg-grid" id="additional-sdg-grid" style="margin-top:6px">
-              <div class="sdg-empty">↑ 5P를 선택해 추가 SDG를 고르세요</div>
+              <div class="sdg-empty">↑ 5P를 선택해 연계목표를 고르세요 (주목표와 같은 SDG는 선택 불가)</div>
             </div>
-            <div class="panel-hint" id="additional-summary">현재 선택된 추가: 없음</div>
+            <div class="panel-hint" id="additional-summary">현재 선택된 연계목표: 없음 (최대 2개)</div>
           </div>
         </div>
       </div>
 
       <!-- Red Tag -->
       <div class="panel-card">
-        <div class="panel-section-title">③ Red Tag (해당 시 선택)</div>
+        <div class="panel-section-title">④ Red Tag (해당 시 선택)</div>
         <div class="panel-body">
           <div class="redtag-options" id="redtag-options">
             <div class="redtag-option" data-val="RT-NONE" onclick="selectRedTag('RT-NONE')">
@@ -555,7 +768,7 @@
 
       <!-- 판단 근거 -->
       <div class="panel-card">
-        <div class="panel-section-title">④ 판단 근거 (한 줄 메모)</div>
+        <div class="panel-section-title">⑤ 판단 근거 (한 줄 메모)</div>
         <div class="panel-body">
           <textarea class="rationale" id="rationale" placeholder="예: 사업목적에 온실가스 감축 명시, SDG 13 판단"></textarea>
         </div>
@@ -568,7 +781,7 @@
 
       <!-- 진행 현황 -->
       <div class="panel-card">
-        <div class="panel-section-title">⑤ 진행 현황</div>
+        <div class="panel-section-title">⑥ 진행 현황</div>
         <div style="padding:12px 16px 4px">
           <div class="export-stats">
             <div class="stat-box"><div class="stat-num" id="stat-done">0</div><div class="stat-label">완료</div></div>
@@ -587,6 +800,16 @@
   </div>
 </div>
 
+<!-- M-02: SDG 혼동 방지 가드 토스트 (파일럿 IAA 피드백 반영) -->
+<div class="sdg-guard-toast" id="sdg-guard-toast">
+  <div class="guard-head" id="guard-head">⚠️ SDG 재검토 안내</div>
+  <div class="guard-body" id="guard-body">—</div>
+  <div class="guard-actions">
+    <button class="btn btn-sm btn-guard-keep"     onclick="dismissGuard('kept')">이대로 유지</button>
+    <button class="btn btn-sm btn-guard-rechoose" onclick="dismissGuard('rechosen')">다시 선택</button>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════
 //  CONFIG
@@ -594,8 +817,16 @@
 const FIREBASE_CONFIG = {
   apiKey: '', authDomain: '', databaseURL: '', projectId: '',
 };
-const DB_PROJECT = 'sdg_main_2026';  // v2 경로 (v1과 분리)
-const STORAGE_PREFIX = 'sdg_anno_v2_';
+// v2 본 라벨링 경로 (v1 파일럿과 분리)
+const DB_PROJECT_MAIN  = 'sdg_main_2026';
+// 파일럿 v2 재라벨링 경로 (본 라벨링과도 분리)
+const DB_PROJECT_PILOT = 'sdg_pilot_v2_2026';
+// localStorage 네임스페이스
+const STORAGE_PREFIX_MAIN  = 'sdg_anno_v2_';
+const STORAGE_PREFIX_PILOT = 'sdg_pilot_v2_';
+// 런타임 결정값 (startSession에서 셋)
+let DB_PROJECT     = DB_PROJECT_MAIN;
+let STORAGE_PREFIX = STORAGE_PREFIX_MAIN;
 
 // 5P ↔ SDG 매핑
 const P5_TO_SDGS = {
@@ -625,21 +856,74 @@ const SDG_LABEL = {
   SDG17:'SDG 17 · 파트너십',
   NA:   'NA · 해당없음',
 };
+// 각 SDG 핵심 설명 (모든 SDG에 노출 — Issue 4 보완)
+const SDG_DESC = {
+  SDG1: '모든 형태의 빈곤 종식 · 기본생활 보장 · 사회안전망 · 취약계층 생계지원',
+  SDG2: '기아 종식 · 식량안보 · 영양개선 · 지속가능 농업 · 농업소득·유통',
+  SDG3: '건강한 삶 보장 · 웰빙 증진 · 보건의료·정신건강·감염병·모자보건',
+  SDG4: '양질의 교육 · 평생학습 · 교육격차 해소 · 보육·직업훈련·평생교육',
+  SDG5: '성평등 · 여성·소녀 역량 강화 · 성차별 해소 · 돌봄노동 · 여성폭력 방지',
+  SDG6: '모두를 위한 물·위생 · 상하수도 · 수질관리 · 수자원 관리',
+  SDG7: '청정·재생 에너지 · 에너지 효율 · 전력 보급 · 태양광·풍력·수소',
+  SDG8: '포용적·지속가능 경제성장 · 일자리 창출 · 양질 고용 · 중소기업·창업',
+  SDG9: '회복력 있는 인프라 · 산업화 · 혁신 R&D · 교통·통신·정보 인프라',
+  SDG10:'국가 내·국가 간 불평등 감소 · 집단 간 격차 축소 · 포용적 정책',
+  SDG11:'지속가능한 도시와 공동체 · 주거·교통·도시공간·재난·문화유산',
+  SDG12:'지속가능한 소비·생산 · 자원효율·폐기물 감축·재활용·친환경 구매',
+  SDG13:'기후변화 대응 · 온실가스 감축 · 적응·회복력 · 탄소중립',
+  SDG14:'해양 생태계 보전 · 해양오염 방지 · 수산자원·어업관리',
+  SDG15:'육상 생태계 보호 · 산림·생물다양성·토양·사막화 방지',
+  SDG16:'평화·정의 · 포용적 제도 · 법치·반부패 · 시민참여·정보접근',
+  SDG17:'글로벌 파트너십 · 국제협력·ODA · 민관협력 · 데이터·통계 역량',
+};
 const SDG_TO_P5 = {};
 Object.entries(P5_TO_SDGS).forEach(([p, sdgs]) => sdgs.forEach(s => SDG_TO_P5[s] = p));
 
 // ══════════════════════════════════════════
+//  M-02 SDG 혼동 방지 가드레일 (파일럿 IAA 피드백 기반)
+// ══════════════════════════════════════════
+const SDG_GUARD_RULES = {
+  SDG11: {
+    title: "⚠️ SDG11 (지속가능 도시) 재검토",
+    body: "SDG11은 <strong>'시민 전체'</strong>가 수혜자이고 <strong>도시 인프라·주거·교통·공간</strong>과 직접 관련될 때 적합합니다.<br><br>수혜자가 특정 집단이면 해당 SDG 우선:<br>· 저소득층 → <strong>SDG1</strong><br>· 아동·청소년 → <strong>SDG3 / SDG4</strong><br>· 여성 → <strong>SDG5</strong><br>· 노인·장애인 → <strong>SDG10</strong><br>· 일자리 연관 → <strong>SDG8</strong>"
+  },
+  SDG10: {
+    title: "⚠️ SDG10 (불평등 감소) 재검토",
+    body: "SDG10은 <strong>집단 간 불평등 축소</strong>가 명시적 목표여야 합니다.<br><br>특정 취약집단이 대상이면 해당 SDG 우선:<br>· 빈곤 → <strong>SDG1</strong><br>· 건강격차 → <strong>SDG3</strong><br>· 교육격차 → <strong>SDG4</strong><br>· 성별격차 → <strong>SDG5</strong>"
+  },
+  SDG1: {
+    title: "⚠️ SDG1 (빈곤 퇴치) 재검토",
+    body: "SDG1은 <strong>생계·기본생활 보장</strong>이 핵심입니다.<br><br>다음 경우는 다른 SDG 우선 고려:<br>· 경제 자립 · 일자리 창출 → <strong>SDG8</strong><br>· 기술·직업 훈련 → <strong>SDG4</strong><br>· 주거복지 → <strong>SDG11</strong>"
+  },
+  SDG5: {
+    title: "⚠️ SDG5 (성 평등) 재검토",
+    body: "SDG5는 <strong>성평등·여성 권익 증진</strong>이 명시적 목표일 때 적합합니다.<br><br>여성이 수혜자이지만 성평등 관점이 명시되지 않았다면:<br>· 한부모·저소득 여성 → <strong>SDG1</strong><br>· 여성 건강 → <strong>SDG3</strong><br>· 여성 일자리·경력단절 → <strong>SDG8</strong><br>· 여성 교육 → <strong>SDG4</strong>"
+  },
+  SDG8: {
+    title: "⚠️ SDG8 (일자리·경제성장) vs SDG9 재검토",
+    body: "SDG8은 <strong>'사람 중심'</strong> 일자리·고용 정책에 적합합니다.<br><br>다음은 <strong>SDG9</strong> 재검토:<br>· 산업단지 조성 · R&D · 기술혁신<br>· 물리 인프라 (교통·통신·에너지 인프라)<br>· 창업·중소기업 지원 중 '일자리 창출' 명시 없는 경우"
+  },
+  SDG9: {
+    title: "⚠️ SDG9 (산업·혁신·인프라) vs SDG8 재검토",
+    body: "SDG9는 <strong>산업·혁신·물리 인프라</strong> 중심입니다.<br><br>일자리·고용 창출이 주된 목적이면 <strong>SDG8</strong> 재검토."
+  }
+};
+
+// ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
-let records = [];          // 현재 Stage 풀 (1 또는 2)
-let assignmentMap = null;  // assignments.json
-let aiPrelabels = {};      // {sample_id: [{sdg, prob}, {sdg, prob}, {sdg, prob}]}
+let records = [];             // 현재 모드의 레코드 풀
+let assignmentMap = null;     // 본 라벨링 assignments.json (Stage 1/2)
+let pilotAssignmentMap = null;// 파일럿 assignments (pilot_assignments.json)
+let aiPrelabels = {};         // {sample_id: [{sdg, prob}, ...]}  Stage 2만 사용
 let annotations = {};
 let currentIdx = 0;
-let annotatorName = '';
-let stageNum = 1;
+let annotatorName = '';       // 슬롯 코드 (A/B/C)
+let annotatorFullName = '';   // 본인 이름 (예: "박정진")
+let stageNum = '1';           // '1' | '2' | 'pilot'
+let isPilot = false;          // 편의 플래그 (startSession에서 셋)
 let db = null;
-let renderTime = 0;        // 현재 레코드 표시 시작 타임스탬프
+let renderTime = 0;           // 현재 레코드 표시 시작 타임스탬프
 let durationTimer = null;
 
 // Current selection state
@@ -649,6 +933,14 @@ let selAdditionalSdgs = [];
 let selAddP5 = '';
 let selTier = '';
 let selRedTag = '';
+let selNaReason = '';    // 'outside' | 'unsure' | ''  (NA 선택 시에만 의미)
+
+// M-01 수혜자 체크리스트 상태 (레코드별)
+let beneficiaryState = { identified: false, providerAware: false, type: null };
+// M-02 SDG 가드 응답 기록 (레코드별, {sdg: 'kept'|'rechosen'})
+let sdgGuardResponses = {};
+// 현재 레코드에서 이미 가드를 띄운 SDG (중복 방지)
+let guardShownThisRecord = new Set();
 
 // ══════════════════════════════════════════
 //  FIREBASE
@@ -682,42 +974,111 @@ function setSyncStatus(state, label) {
 // ══════════════════════════════════════════
 async function loadBootstrap() {
   const info = document.getElementById('data-info');
+  const statusParts = [];
+  let anyLoaded = false;
+
+  // 본 라벨링 assignments (있을 수도, 없을 수도)
   try {
-    // 필수: assignments.json
     const r1 = await fetch('data/assignments.json');
-    if (!r1.ok) throw new Error('assignments.json HTTP ' + r1.status);
-    assignmentMap = await r1.json();
-
-    // AI prelabels (Stage 2에서만 필요하지만 미리 로드)
-    try {
-      const r2 = await fetch('data/ai_prelabels.json');
-      if (r2.ok) aiPrelabels = await r2.json();
-    } catch (e) {
-      console.warn('ai_prelabels.json 없음:', e.message);
-      aiPrelabels = {};
+    if (r1.ok) {
+      assignmentMap = await r1.json();
+      statusParts.push(`본 라벨링 ${Object.keys(assignmentMap.annotators || {}).length}명`);
+      anyLoaded = true;
+    } else {
+      statusParts.push('본 라벨링 ❌');
     }
-
-    const keys = Object.keys(assignmentMap.annotators || {});
-    info.innerHTML = `<strong>✅ 할당 파일 로드</strong>어노테이터 ${keys.length}명 · 준비 완료`;
-    document.getElementById('annotator-name').addEventListener('change', checkCanStart);
-    document.getElementById('stage-select').addEventListener('change', checkCanStart);
   } catch (e) {
-    info.innerHTML = `<strong>❌ assignments.json 로드 실패</strong>generate_assignments.py 먼저 실행하세요.<br><small>${e.message}</small>`;
+    statusParts.push('본 라벨링 ❌');
+  }
+
+  // 파일럿 assignments (있을 수도, 없을 수도)
+  try {
+    const r2 = await fetch('data/pilot_assignments.json');
+    if (r2.ok) {
+      pilotAssignmentMap = await r2.json();
+      statusParts.push(`파일럿 ${Object.keys(pilotAssignmentMap.annotators || {}).length}명`);
+      anyLoaded = true;
+    } else {
+      statusParts.push('파일럿 ❌');
+    }
+  } catch (e) {
+    statusParts.push('파일럿 ❌');
+  }
+
+  // AI prelabels (Stage 2만 사용)
+  try {
+    const r3 = await fetch('data/ai_prelabels.json');
+    if (r3.ok) aiPrelabels = await r3.json();
+  } catch (e) {
+    aiPrelabels = {};
+  }
+
+  if (!anyLoaded) {
+    info.innerHTML = `<strong>❌ 할당 파일 모두 로드 실패</strong>assignments.json 또는 pilot_assignments.json 필요.<br><small>generate_assignments.py 실행 or 파일럿 데이터 배치</small>`;
     info.style.background = '#FEF2F2';
     info.style.borderColor = '#FECACA';
+  } else {
+    info.innerHTML = `<strong>✅ 할당 파일 로드</strong>${statusParts.join(' · ')}`;
+  }
+
+  document.getElementById('annotator-name').addEventListener('change', checkCanStart);
+  document.getElementById('stage-select').addEventListener('change', () => {
+    autoMatchSlot();
+    checkCanStart();
+  });
+  document.getElementById('annotator-full-name').addEventListener('input', () => {
+    autoMatchSlot();
+    checkCanStart();
+  });
+}
+
+// 본인 이름으로부터 할당 슬롯(A/B/C) 자동 매칭
+// assignments.json / pilot_assignments.json의 annotators[X].name 에서 이름을 찾음
+function autoMatchSlot() {
+  const fullName = document.getElementById('annotator-full-name').value.trim();
+  const noteEl = document.getElementById('slot-auto-note');
+  const slotSel = document.getElementById('annotator-name');
+  if (!fullName) { noteEl.textContent = ''; return; }
+
+  const stg = document.getElementById('stage-select').value;
+  const map = (stg === 'pilot') ? pilotAssignmentMap : assignmentMap;
+  if (!map || !map.annotators) { noteEl.textContent = ''; return; }
+
+  let matched = null;
+  for (const [slot, info] of Object.entries(map.annotators)) {
+    const nm = (info.name || '').trim();
+    // "어노테이터 A (박정진)" 패턴에서 이름 매칭
+    if (nm && nm.includes(fullName)) { matched = slot; break; }
+  }
+  if (matched) {
+    slotSel.value = matched;
+    noteEl.textContent = `→ 자동 매칭: 슬롯 ${matched}`;
+    noteEl.style.color = 'var(--green)';
+  } else {
+    noteEl.textContent = '→ 매칭 없음 (수동 선택하세요)';
+    noteEl.style.color = 'var(--accent)';
   }
 }
 
 function checkCanStart() {
   const ann = document.getElementById('annotator-name').value;
   const stg = document.getElementById('stage-select').value;
-  document.getElementById('start-btn').disabled = !(ann && stg && assignmentMap);
+  const fullName = document.getElementById('annotator-full-name').value.trim();
+  // 선택한 모드에 맞는 assignmentMap이 로드돼 있어야 시작 가능
+  const map = (stg === 'pilot') ? pilotAssignmentMap : assignmentMap;
+  document.getElementById('start-btn').disabled = !(ann && stg && map && fullName);
 }
 
 async function startSession() {
   annotatorName = document.getElementById('annotator-name').value;
-  stageNum = parseInt(document.getElementById('stage-select').value);
-  if (!annotatorName) return;
+  annotatorFullName = document.getElementById('annotator-full-name').value.trim();
+  stageNum = document.getElementById('stage-select').value; // '1' | '2' | 'pilot'
+  if (!annotatorName || !stageNum || !annotatorFullName) return;
+
+  isPilot = (stageNum === 'pilot');
+  // 모드별 런타임 설정
+  DB_PROJECT     = isPilot ? DB_PROJECT_PILOT     : DB_PROJECT_MAIN;
+  STORAGE_PREFIX = isPilot ? STORAGE_PREFIX_PILOT : STORAGE_PREFIX_MAIN;
 
   const btn = document.getElementById('start-btn');
   btn.disabled = true;
@@ -725,13 +1086,19 @@ async function startSession() {
 
   db = initFirebase();
 
-  // 할당된 ID 가져오기
-  const slot = assignmentMap.annotators[annotatorName];
+  // 모드별 할당 맵·ID 추출
+  const map = isPilot ? pilotAssignmentMap : assignmentMap;
+  if (!map) { alert('할당 맵이 로드되지 않았습니다.'); return; }
+  const slot = map.annotators[annotatorName];
   if (!slot) { alert('할당 정보 없음: ' + annotatorName); return; }
-  const ids = stageNum === 1 ? slot.stage1_samples : slot.stage2_samples;
 
-  // 해당 Stage Pool에서 ID 매칭 레코드만 추출
-  const poolFile = `data/stage${stageNum}_pool.json`;
+  let ids;
+  if (isPilot)                    ids = slot.pilot_samples  || [];
+  else if (stageNum === '1')      ids = slot.stage1_samples || [];
+  else                             ids = slot.stage2_samples || [];
+
+  // 모드별 풀 파일
+  const poolFile = isPilot ? 'data/pilot.json' : `data/stage${stageNum}_pool.json`;
   let pool = [];
   try {
     const r = await fetch(poolFile);
@@ -745,15 +1112,17 @@ async function startSession() {
   records = pool.filter(r => idSet.has(String(r.id ?? r.sample_id)));
   if (records.length === 0) { alert('할당된 레코드가 없습니다.'); return; }
 
-  // 로컬 저장 불러오기
-  const storageKey = STORAGE_PREFIX + annotatorName + '_s' + stageNum;
+  // 로컬 저장 키 (모드별 네임스페이스)
+  const stageTag = isPilot ? 'pilot' : ('s' + stageNum);
+  const storageKey = STORAGE_PREFIX + annotatorName + '_' + stageTag;
   const saved = localStorage.getItem(storageKey);
   annotations = saved ? JSON.parse(saved) : {};
 
-  // Firebase 병합
+  // Firebase 병합 (경로도 모드별)
   if (db) {
     try {
-      const path = `${DB_PROJECT}/stage${stageNum}/${annotatorName}`;
+      const fbStageKey = isPilot ? 'pilot' : ('stage' + stageNum);
+      const path = `${DB_PROJECT}/${fbStageKey}/${annotatorName}`;
       const snap = await db.ref(path).get();
       if (snap.exists()) {
         const fbData = snap.val();
@@ -790,10 +1159,16 @@ async function startSession() {
 
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
-  document.getElementById('header-annotator').textContent = '어노테이터: ' + annotatorName;
+  document.getElementById('header-annotator').textContent =
+    '어노테이터: ' + annotatorName + (annotatorFullName ? ' · ' + annotatorFullName : '');
   const sb = document.getElementById('header-stage');
-  sb.textContent = 'Stage ' + stageNum + (stageNum === 1 ? ' · Blind' : ' · 검수');
-  sb.className = 'stage-badge s' + stageNum;
+  if (isPilot) {
+    sb.textContent = '🧪 파일럿 · 50건';
+    sb.className = 'stage-badge s-pilot';
+  } else {
+    sb.textContent = 'Stage ' + stageNum + (stageNum === '1' ? ' · Blind' : ' · 검수');
+    sb.className = 'stage-badge s' + stageNum;
+  }
 
   buildMiniGrid();
   renderRecord();
@@ -836,9 +1211,9 @@ function renderRecord() {
     document.getElementById('plan-block').style.display = 'none';
   }
 
-  // Stage 2: AI Top-3 렌더
+  // Stage 2에서만 AI Top-3 렌더 (파일럿은 Blind)
   const aiPanel = document.getElementById('ai-panel');
-  if (stageNum === 2) {
+  if (!isPilot && stageNum === '2') {
     aiPanel.style.display = 'block';
     renderAiTopK(id);
   } else {
@@ -851,24 +1226,32 @@ function renderRecord() {
     selPrimarySdg = ann.sdgPath?.sdg || '';
     selP5 = ann.sdgPath?.p5 || (selPrimarySdg ? SDG_TO_P5[selPrimarySdg] : '');
     selAdditionalSdgs = ann.sdgPath?.additionalSdgs || [];
+    selNaReason = ann.sdgPath?.naReason || '';                    // NA 사유 복원
     selTier = ann.tier || '';
     selRedTag = ann.redTag || '';
     document.getElementById('rationale').value = ann.rationale || '';
+    restoreBeneficiaryUI(ann.beneficiary);                       // M-01 복원
+    sdgGuardResponses = ann.sdgGuardResponses ? { ...ann.sdgGuardResponses } : {}; // M-02 복원
   } else {
     selPrimarySdg = '';
     selP5 = '';
     selAdditionalSdgs = [];
+    selNaReason = '';
     selTier = '';
     selRedTag = '';
     document.getElementById('rationale').value = '';
+    restoreBeneficiaryUI(null);                                   // M-01 초기화
+    sdgGuardResponses = {};                                       // M-02 초기화
   }
   selAddP5 = '';
+  resetGuardStateForRecord();                                     // 토스트/중복플래그만 리셋 (응답 기록은 위에서 복원 완료)
 
   render5P();
   renderSdgGrid();
   renderAdditional();
   renderTier();
   renderRedTag();
+  renderNaReasonBox();
 
   document.getElementById('btn-prev').disabled = currentIdx === 0;
   document.getElementById('btn-next').disabled = currentIdx === records.length - 1;
@@ -933,15 +1316,22 @@ function renderSdgGrid() {
   sdgs.forEach(sdg => {
     const btn = document.createElement('button');
     btn.className = 'sdg-btn' + (selPrimarySdg === sdg ? ' selected' : '');
-    btn.textContent = SDG_LABEL[sdg] || sdg;
+    btn.innerHTML = `
+      <div class="sdg-btn-title">${escHtml(SDG_LABEL[sdg] || sdg)}</div>
+      <div class="sdg-btn-desc">${escHtml(SDG_DESC[sdg] || '')}</div>
+    `;
     btn.onclick = () => selectSdg(sdg, null);
     grid.appendChild(btn);
   });
 }
 
 function renderAdditional() {
+  // v1.6: 연계목표(Significant)는 독립 섹션으로 항상 노출 — tier 무관
   const panel = document.getElementById('additional-panel');
-  panel.style.display = selTier === 'ambiguous' ? 'block' : 'none';
+  if (panel) panel.style.display = 'block';
+  // NA 선택 시에는 연계목표 영역 숨김 (NA는 연계목표 의미 없음)
+  const card = document.getElementById('significant-card');
+  if (card) card.style.display = (selPrimarySdg === 'NA') ? 'none' : '';
   // 5P active
   document.querySelectorAll('#additional-panel .p5-grid .p5-btn').forEach(b => b.classList.remove('active'));
   if (selAddP5) {
@@ -951,7 +1341,7 @@ function renderAdditional() {
   }
   const grid = document.getElementById('additional-sdg-grid');
   if (!selAddP5) {
-    grid.innerHTML = '<div class="sdg-empty">↑ 5P를 선택해 추가 SDG를 고르세요</div>';
+    grid.innerHTML = '<div class="sdg-empty">↑ 5P를 선택해 연계목표를 고르세요 (주목표와 같은 SDG는 선택 불가)</div>';
   } else {
     const sdgs = P5_TO_SDGS[selAddP5] || [];
     grid.innerHTML = '';
@@ -960,13 +1350,16 @@ function renderAdditional() {
       const isAdd = selAdditionalSdgs.includes(sdg);
       const btn = document.createElement('button');
       btn.className = 'sdg-btn' + (isAdd ? ' additional' : '');
-      btn.textContent = (isAdd ? '✓ ' : '') + (SDG_LABEL[sdg] || sdg);
+      btn.innerHTML = `
+        <div class="sdg-btn-title">${isAdd ? '✓ ' : ''}${escHtml(SDG_LABEL[sdg] || sdg)}</div>
+        <div class="sdg-btn-desc">${escHtml(SDG_DESC[sdg] || '')}</div>
+      `;
       btn.onclick = () => toggleAdditional(sdg);
       grid.appendChild(btn);
     });
   }
   document.getElementById('additional-summary').textContent =
-    '현재 선택된 추가: ' + (selAdditionalSdgs.length ? selAdditionalSdgs.join(', ') : '없음 (최대 3개)');
+    '현재 선택된 연계목표: ' + (selAdditionalSdgs.length ? selAdditionalSdgs.join(', ') : '없음') + ' (최대 2개)';
 }
 
 function renderTier() {
@@ -1003,10 +1396,16 @@ function selectSdg(sdg, aiRank) {
   selPrimarySdg = sdg;
   if (sdg === 'NA') {
     selP5 = '';
-  } else if (sdg) {
-    selP5 = SDG_TO_P5[sdg] || selP5;
+    // NA 재선택이 아니면 사유 초기화 (기존 사유 유지는 renderRecord 복원 경로에서만)
+    // 사용자가 NA 버튼을 능동 클릭한 경우: 사유 박스만 노출, 사유 비움
+    selNaReason = '';
+    renderNaReasonBox();
+  } else {
+    if (sdg) selP5 = SDG_TO_P5[sdg] || selP5;
+    selNaReason = '';
+    renderNaReasonBox();
   }
-  // 주 SDG가 추가 SDG에 들어가면 제거
+  // 주목표 SDG가 연계목표에 들어가면 제거
   selAdditionalSdgs = selAdditionalSdgs.filter(s => s !== sdg);
   window._chosenFromAi = (aiRank != null);
   window._aiRank = aiRank;
@@ -1014,6 +1413,39 @@ function selectSdg(sdg, aiRank) {
   renderSdgGrid();
   renderAiTopK(recId());
   renderAdditional();
+  // M-02: 혼동 빈발 SDG 선택 시 가드 토스트 표시 (400ms 지연)
+  if (sdg && SDG_GUARD_RULES[sdg]) {
+    setTimeout(() => triggerSdgGuard(sdg), 400);
+  }
+}
+
+function selectNaReason(reason) {
+  selNaReason = reason;
+  // NA-OUTSIDE = 17개 외 확정 → tier=certain 자동
+  // NA-UNSURE  = 판단불가 → tier=unknown 자동 (skip 경로)
+  if (reason === 'outside' && !selTier) {
+    selTier = 'certain';
+    renderTier();
+  } else if (reason === 'unsure') {
+    selTier = 'unknown';
+    renderTier();
+  }
+  renderNaReasonBox();
+}
+
+function renderNaReasonBox() {
+  const box = document.getElementById('na-reason-box');
+  if (!box) return;
+  if (selPrimarySdg === 'NA') {
+    box.classList.add('show');
+    // 라디오 상태 동기화
+    document.querySelectorAll('input[name="na-reason"]').forEach(r => {
+      r.checked = (r.value === selNaReason);
+    });
+  } else {
+    box.classList.remove('show');
+    document.querySelectorAll('input[name="na-reason"]').forEach(r => r.checked = false);
+  }
 }
 
 function selectSdgFromAi(sdg, rank) {
@@ -1023,11 +1455,15 @@ function selectSdgFromAi(sdg, rank) {
 function clearPrimarySdg() {
   selPrimarySdg = '';
   selP5 = '';
+  // v1.6: 주목표 초기화 시 연계목표도 함께 리셋
+  selAdditionalSdgs = [];
+  selAddP5 = '';
   window._chosenFromAi = false;
   window._aiRank = null;
   render5P();
   renderSdgGrid();
   renderAiTopK(recId());
+  renderAdditional();
 }
 
 function showManualSelect() {
@@ -1050,8 +1486,9 @@ function toggleAdditional(sdg) {
   if (i >= 0) {
     selAdditionalSdgs.splice(i, 1);
   } else {
-    if (selAdditionalSdgs.length >= 3) {
-      showStatus('추가 SDG는 최대 3개까지 가능합니다.', 'error');
+    // v1.6: 연계목표는 최대 2개 (주목표 1개 + 연계 2개 = 총 3개 상한)
+    if (selAdditionalSdgs.length >= 2) {
+      showStatus('연계목표는 최대 2개까지 가능합니다.', 'error');
       return;
     }
     selAdditionalSdgs.push(sdg);
@@ -1070,6 +1507,68 @@ function recId() {
 }
 
 // ══════════════════════════════════════════
+//  M-01 수혜자 체크리스트 상태 관리
+// ══════════════════════════════════════════
+function updateBeneficiaryState() {
+  const id2 = document.getElementById('chk-provider-aware').checked;
+  const typeEl = document.querySelector('input[name="bene-type"]:checked');
+  const type = typeEl ? typeEl.value : null;
+  // v1.5: 유형 선택 자체가 "식별함" 신호 (체크박스 ① 제거)
+  beneficiaryState = {
+    identified: !!type,           // 유형 선택되면 자동 TRUE
+    providerAware: id2,
+    type: type,
+  };
+  const card = document.getElementById('beneficiary-card');
+  if (type && id2) card.classList.add('done');
+  else card.classList.remove('done');
+}
+
+function restoreBeneficiaryUI(saved) {
+  const s = saved || { identified: false, providerAware: false, type: null };
+  document.getElementById('chk-provider-aware').checked = !!s.providerAware;
+  document.querySelectorAll('input[name="bene-type"]').forEach(r => r.checked = false);
+  if (s.type) {
+    const el = document.querySelector(`input[name="bene-type"][value="${s.type}"]`);
+    if (el) el.checked = true;
+  }
+  updateBeneficiaryState();
+}
+
+// ══════════════════════════════════════════
+//  M-02 SDG 혼동 방지 가드
+// ══════════════════════════════════════════
+function triggerSdgGuard(sdg) {
+  if (!sdg || !SDG_GUARD_RULES[sdg]) return;
+  if (guardShownThisRecord.has(sdg)) return; // 동일 레코드에서 1회만
+  guardShownThisRecord.add(sdg);
+
+  const rule = SDG_GUARD_RULES[sdg];
+  const toast = document.getElementById('sdg-guard-toast');
+  document.getElementById('guard-head').innerHTML = rule.title;
+  document.getElementById('guard-body').innerHTML = rule.body;
+  toast.dataset.sdg = sdg;
+  toast.classList.add('show');
+}
+
+function dismissGuard(response) {
+  const toast = document.getElementById('sdg-guard-toast');
+  const sdg = toast.dataset.sdg || '';
+  if (sdg) sdgGuardResponses[sdg] = response; // 'kept' or 'rechosen'
+  if (response === 'rechosen') {
+    clearPrimarySdg();
+  }
+  toast.classList.remove('show');
+}
+
+function resetGuardStateForRecord() {
+  // 토스트 표시 중복 방지 플래그와 열려있는 토스트만 리셋
+  // (sdgGuardResponses는 renderRecord에서 ann에 맞게 별도 복원)
+  guardShownThisRecord = new Set();
+  document.getElementById('sdg-guard-toast').classList.remove('show');
+}
+
+// ══════════════════════════════════════════
 //  SAVE
 // ══════════════════════════════════════════
 function collectAnnotation() {
@@ -1077,11 +1576,14 @@ function collectAnnotation() {
   const ann = {
     sample_id: id,
     annotator: annotatorName,
+    annotator_name: annotatorFullName || '',
     stage: stageNum,
     sdgPath: {
       p5: selP5 || null,
       sdg: selPrimarySdg || null,
-      additionalSdgs: selTier === 'ambiguous' ? selAdditionalSdgs.slice() : [],
+      // v1.6: 연계목표는 tier 무관하게 기록 (주목표=NA면 제외)
+      additionalSdgs: (selPrimarySdg === 'NA') ? [] : selAdditionalSdgs.slice(),
+      naReason: (selPrimarySdg === 'NA') ? (selNaReason || null) : null,
     },
     aiTopK: null,
     chosenFromAI: !!window._chosenFromAi,
@@ -1089,10 +1591,18 @@ function collectAnnotation() {
     tier: selTier || null,
     redTag: selRedTag || null,
     rationale: document.getElementById('rationale').value.trim(),
+    // M-01: 수혜자 체크리스트 상태 (파일럿 IAA 피드백 반영)
+    beneficiary: {
+      identified: !!beneficiaryState.identified,
+      providerAware: !!beneficiaryState.providerAware,
+      type: beneficiaryState.type || null,
+    },
+    // M-02: SDG 혼동 가드 응답 (파일럿 IAA 피드백 반영)
+    sdgGuardResponses: Object.keys(sdgGuardResponses).length ? { ...sdgGuardResponses } : null,
     timestamp: new Date().toISOString(),
     durationSec: Math.max(0, Math.round((Date.now() - renderTime) / 1000)),
   };
-  if (stageNum === 2) {
+  if (!isPilot && stageNum === '2') {
     const topk = aiPrelabels[id] || aiPrelabels[String(id)] || [];
     ann.aiTopK = topk.slice(0, 3).map(t => ({ sdg: t.sdg || t.label, prob: t.prob ?? t.score ?? 0 }));
   }
@@ -1101,12 +1611,20 @@ function collectAnnotation() {
 
 function validateAnnotation(ann) {
   if (!ann.tier) return '확신도(3-tier)를 선택하세요.';
+  // NA-UNSURE 또는 tier=unknown은 skip 경로로 허용 (단, NA 선택 시 사유는 있어야 함)
+  if (ann.sdgPath.sdg === 'NA' && !ann.sdgPath.naReason) {
+    return '해당 없음(NA) 사유를 선택하세요 — 17개 목표 외(NA-OUTSIDE) 또는 판단 불가(NA-UNSURE).';
+  }
   if (ann.tier === 'unknown') return null;  // skip 허용
-  if (!ann.sdgPath.sdg) return '주 SDG를 선택하세요 (또는 "모르겠음").';
+  if (!ann.sdgPath.sdg) return '주목표 SDG를 선택하세요 (또는 "해당 없음").';
   if (ann.tier === 'ambiguous' && (!ann.sdgPath.additionalSdgs || ann.sdgPath.additionalSdgs.length === 0)) {
-    return '"애매함" 선택 시 추가 SDG를 최소 1개 선택하세요.';
+    return '"애매함" 선택 시 연계목표를 최소 1개 선택하세요 (주목표가 불확실하므로 대안을 명시해야 합니다).';
   }
   if (!ann.redTag) return 'Red Tag를 선택하세요 (없으면 RT-NONE).';
+  // M-04: Red Tag A/B/C 선택 시 판단 근거 필수
+  if (ann.redTag && ann.redTag !== 'RT-NONE' && !ann.rationale) {
+    return 'Red Tag(A/B/C) 선택 시 판단 근거를 반드시 입력하세요 (한 줄).';
+  }
   return null;
 }
 
@@ -1118,12 +1636,14 @@ function saveAnnotation() {
   const id = ann.sample_id;
   annotations[id] = ann;
 
-  const storageKey = STORAGE_PREFIX + annotatorName + '_s' + stageNum;
+  const stageTag = isPilot ? 'pilot' : ('s' + stageNum);
+  const storageKey = STORAGE_PREFIX + annotatorName + '_' + stageTag;
   localStorage.setItem(storageKey, JSON.stringify(annotations));
 
   if (db) {
     setSyncStatus('syncing', '동기화 중...');
-    const path = `${DB_PROJECT}/stage${stageNum}/${annotatorName}/${id}`;
+    const fbStageKey = isPilot ? 'pilot' : ('stage' + stageNum);
+    const path = `${DB_PROJECT}/${fbStageKey}/${annotatorName}/${id}`;
     db.ref(path).set(ann)
       .then(() => setSyncStatus('ok', '🔥 동기화 완료'))
       .catch(e => {
@@ -1187,7 +1707,7 @@ function buildMiniGrid() {
   const grid = document.getElementById('mini-grid');
   grid.innerHTML = '';
   const crossSet = new Set();
-  if (stageNum === 2) {
+  if (!isPilot && stageNum === '2' && assignmentMap) {
     const slot = assignmentMap.annotators[annotatorName];
     (slot?.stage2_crosscheck || []).forEach(id => crossSet.add(String(id)));
   }
@@ -1230,10 +1750,12 @@ function exportCSV() {
   const keys = Object.keys(annotations);
   if (keys.length === 0) { alert('아직 저장된 어노테이션이 없습니다.'); return; }
   const cols = [
-    'sample_id','annotator','stage','p5','sdg','additionalSdgs',
+    'sample_id','annotator','annotator_name','stage','p5','sdg','naReason','additionalSdgs',
     'tier','redTag','chosenFromAI','aiRank',
     'aiTop1','aiTop1Prob','aiTop2','aiTop2Prob','aiTop3','aiTop3Prob',
-    'rationale','durationSec','timestamp'
+    'rationale','durationSec',
+    'beneProviderAware','beneType','sdgGuardResponses',
+    'timestamp'
   ];
   const rows = [cols.join(',')];
   records.forEach((r, i) => {
@@ -1244,9 +1766,11 @@ function exportCSV() {
     const row = [
       csvCell(id),
       csvCell(ann.annotator || ''),
+      csvCell(ann.annotator_name || ''),
       csvCell(ann.stage),
       csvCell(ann.sdgPath?.p5 || ''),
       csvCell(ann.sdgPath?.sdg || ''),
+      csvCell(ann.sdgPath?.naReason || ''),
       csvCell((ann.sdgPath?.additionalSdgs || []).join('|')),
       csvCell(ann.tier || ''),
       csvCell(ann.redTag || ''),
@@ -1257,6 +1781,9 @@ function exportCSV() {
       csvCell(tk[2]?.sdg || ''), csvCell(tk[2]?.prob ?? ''),
       csvCell(ann.rationale || ''),
       csvCell(ann.durationSec ?? ''),
+      csvCell(ann.beneficiary?.providerAware ? 'TRUE' : 'FALSE'),
+      csvCell(ann.beneficiary?.type || ''),
+      csvCell(ann.sdgGuardResponses ? JSON.stringify(ann.sdgGuardResponses) : ''),
       csvCell(ann.timestamp || ''),
     ];
     rows.push(row.join(','));
@@ -1266,7 +1793,8 @@ function exportCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `annotations_${annotatorName}_s${stageNum}_${new Date().toISOString().slice(0,10)}.csv`;
+  const modeTag = isPilot ? 'pilot' : ('s' + stageNum);
+  a.download = `annotations_${annotatorName}_${modeTag}_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }

@@ -1,0 +1,56 @@
+{
+  "_comment": "Firebase Realtime Database 보안 규칙 샘플 (v2 + 파일럿 v2)",
+  "_howto": "Firebase Console > Realtime Database > Rules 탭에 아래 'rules' 객체만 붙여넣기",
+  "_warning": "실전 투입 전 반드시 Firebase Anonymous Auth를 활성화하고, UID→어노테이터 매핑 후 $uid 검증으로 교체할 것",
+
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "sdg_main_2026": {
+      ".read":  "auth != null",
+      ".indexOn": ["timestamp"],
+      "$stage": {
+        "$annotator": {
+          ".read":  "auth != null",
+          ".write": "auth != null",
+          "$sample_id": {
+            ".validate": "newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
+            "annotator":  { ".validate": "newData.val() === $annotator" },
+            "stage":      { ".validate": "newData.isString() || newData.isNumber()" },
+            "sample_id":  { ".validate": "newData.isString() || newData.isNumber()" },
+            "tier":       { ".validate": "newData.isString()" },
+            "timestamp":  { ".validate": "newData.isString()" },
+            "$other":     { ".validate": true }
+          }
+        }
+      }
+    },
+
+    "sdg_pilot_v2_2026": {
+      ".read":  "auth != null",
+      ".indexOn": ["timestamp"],
+      "$stage": {
+        ".validate": "$stage === 'pilot'",
+        "$annotator": {
+          ".read":  "auth != null",
+          ".write": "auth != null",
+          "$sample_id": {
+            ".validate": "newData.hasChildren(['sample_id', 'annotator', 'tier', 'timestamp'])",
+            "annotator":  { ".validate": "newData.val() === $annotator" },
+            "sample_id":  { ".validate": "newData.isString() || newData.isNumber()" },
+            "tier":       { ".validate": "newData.isString()" },
+            "timestamp":  { ".validate": "newData.isString()" },
+            "$other":     { ".validate": true }
+          }
+        }
+      }
+    },
+
+    "_legacy_v1": {
+      "_comment": "v1 파일럿(sdgs-annotation-52f47) 데이터는 read-only 아카이브 권장",
+      ".read":  "auth != null",
+      ".write": false
+    }
+  }
+}
