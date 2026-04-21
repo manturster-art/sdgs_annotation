@@ -1,0 +1,498 @@
+{
+  "57": {
+    "annotated_at": "2026-03-28T07:45:20.666Z",
+    "hold": false,
+    "rationale": "저소득층 및 노년층 일자리 창출을 활용한 사업",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG1",
+    "sdg_secondary": [
+      "SDG8",
+      "SDG10"
+    ]
+  },
+  "71": {
+    "annotated_at": "2026-03-30T06:11:05.585Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG11",
+    "sdg_secondary": [
+      "SDG3"
+    ]
+  },
+  "159": {
+    "annotated_at": "2026-03-30T06:16:51.776Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG15"
+  },
+  "334": {
+    "annotated_at": "2026-03-30T06:17:20.129Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG9"
+    ]
+  },
+  "366": {
+    "annotated_at": "2026-03-31T01:43:04.910Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG12",
+    "sdg_secondary": [
+      "SDG8"
+    ]
+  },
+  "389": {
+    "annotated_at": "2026-03-31T01:43:49.925Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG2",
+    "sdg_secondary": [
+      "SDG3"
+    ]
+  },
+  "424": {
+    "annotated_at": "2026-03-31T01:44:12.499Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG11",
+    "sdg_secondary": [
+      "SDG10"
+    ]
+  },
+  "449": {
+    "annotated_at": "2026-03-31T01:44:27.830Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG3",
+    "sdg_secondary": [
+      "SDG4"
+    ]
+  },
+  "486": {
+    "annotated_at": "2026-03-31T01:45:14.681Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG4"
+  },
+  "496": {
+    "annotated_at": "2026-03-31T01:45:47.325Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG14"
+  },
+  "529": {
+    "annotated_at": "2026-03-31T01:46:12.576Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG9",
+    "sdg_secondary": [
+      "SDG11"
+    ]
+  },
+  "549": {
+    "annotated_at": "2026-03-31T01:46:54.274Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG3"
+    ]
+  },
+  "582": {
+    "annotated_at": "2026-03-31T01:53:29.558Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG13",
+    "sdg_secondary": [
+      "SDG4",
+      "SDG11"
+    ]
+  },
+  "589": {
+    "annotated_at": "2026-03-31T01:53:53.576Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG10",
+    "sdg_secondary": [
+      "SDG1",
+      "SDG3"
+    ]
+  },
+  "617": {
+    "annotated_at": "2026-03-31T01:54:10.280Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG2",
+    "sdg_secondary": [
+      "SDG1"
+    ]
+  },
+  "635": {
+    "annotated_at": "2026-03-31T01:55:37.867Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG10",
+    "sdg_secondary": [
+      "SDG3"
+    ]
+  },
+  "732": {
+    "annotated_at": "2026-03-31T01:56:21.783Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG11"
+    ]
+  },
+  "894": {
+    "annotated_at": "2026-03-31T01:59:27.456Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG2",
+    "sdg_secondary": [
+      "SDG9"
+    ]
+  },
+  "913": {
+    "annotated_at": "2026-03-31T02:00:01.052Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG11"
+  },
+  "924": {
+    "annotated_at": "2026-03-31T02:00:17.300Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG4",
+    "sdg_secondary": [
+      "SDG10"
+    ]
+  },
+  "992": {
+    "annotated_at": "2026-03-31T02:00:38.423Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG10",
+    "sdg_secondary": [
+      "SDG3"
+    ]
+  },
+  "994": {
+    "annotated_at": "2026-03-31T02:15:40.822Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG3"
+  },
+  "1049": {
+    "annotated_at": "2026-03-31T02:16:06.886Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG3",
+    "sdg_secondary": [
+      "NA"
+    ]
+  },
+  "1052": {
+    "annotated_at": "2026-03-31T02:17:47.711Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG3",
+    "sdg_secondary": [
+      "SDG11"
+    ]
+  },
+  "1072": {
+    "annotated_at": "2026-03-31T02:18:02.591Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "NA"
+  },
+  "1089": {
+    "annotated_at": "2026-03-31T02:18:35.267Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG2",
+      "SDG9"
+    ]
+  },
+  "1090": {
+    "annotated_at": "2026-03-31T02:18:50.532Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG2",
+    "sdg_secondary": [
+      "SDG9"
+    ]
+  },
+  "1096": {
+    "annotated_at": "2026-03-31T02:21:50.784Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG9"
+    ]
+  },
+  "1098": {
+    "annotated_at": "2026-03-31T02:22:12.530Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG9",
+    "sdg_secondary": [
+      "SDG2"
+    ]
+  },
+  "1104": {
+    "annotated_at": "2026-03-31T04:08:01.864Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG9",
+    "sdg_secondary": [
+      "SDG8"
+    ]
+  },
+  "1108": {
+    "annotated_at": "2026-03-31T04:08:24.655Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG9",
+    "sdg_secondary": [
+      "SDG8",
+      "SDG12"
+    ]
+  },
+  "1109": {
+    "annotated_at": "2026-03-31T04:18:41.166Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG3",
+    "sdg_secondary": [
+      "SDG6",
+      "SDG8"
+    ]
+  },
+  "1117": {
+    "annotated_at": "2026-03-31T04:19:53.199Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG12",
+    "sdg_secondary": [
+      "SDG13"
+    ]
+  },
+  "1118": {
+    "annotated_at": "2026-03-31T04:22:22.647Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG10",
+    "sdg_secondary": [
+      "SDG6"
+    ]
+  },
+  "1119": {
+    "annotated_at": "2026-03-31T04:22:40.454Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG12",
+    "sdg_secondary": [
+      "SDG13"
+    ]
+  },
+  "1123": {
+    "annotated_at": "2026-03-31T04:23:00.287Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG12",
+    "sdg_secondary": [
+      "SDG2",
+      "SDG13"
+    ]
+  },
+  "1124": {
+    "annotated_at": "2026-03-31T04:23:16.176Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG12",
+    "sdg_secondary": [
+      "SDG13"
+    ]
+  },
+  "1136": {
+    "annotated_at": "2026-03-31T04:23:31.249Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG12",
+    "sdg_secondary": [
+      "SDG13"
+    ]
+  },
+  "1143": {
+    "annotated_at": "2026-03-31T04:27:07.985Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG14",
+    "sdg_secondary": [
+      "SDG9",
+      "SDG15"
+    ]
+  },
+  "1152": {
+    "annotated_at": "2026-03-31T04:27:40.037Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG14",
+    "sdg_secondary": [
+      "SDG15"
+    ]
+  },
+  "1157": {
+    "annotated_at": "2026-03-31T04:27:59.207Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG4",
+    "sdg_secondary": [
+      "SDG10"
+    ]
+  },
+  "1162": {
+    "annotated_at": "2026-03-31T04:28:14.875Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG14",
+    "sdg_secondary": [
+      "SDG13",
+      "SDG15"
+    ]
+  },
+  "1164": {
+    "annotated_at": "2026-03-31T04:28:33.164Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG14",
+    "sdg_secondary": [
+      "SDG6",
+      "SDG15"
+    ]
+  },
+  "1165": {
+    "annotated_at": "2026-03-31T04:28:49.967Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG14",
+    "sdg_secondary": [
+      "SDG8",
+      "SDG15"
+    ]
+  },
+  "1176": {
+    "annotated_at": "2026-03-31T04:29:11.441Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG17",
+    "sdg_secondary": [
+      "SDG3",
+      "SDG16"
+    ]
+  },
+  "1180": {
+    "annotated_at": "2026-03-31T04:29:24.410Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG13",
+    "sdg_secondary": [
+      "SDG16",
+      "SDG17"
+    ]
+  },
+  "1184": {
+    "annotated_at": "2026-03-31T04:29:41.524Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG17",
+    "sdg_secondary": [
+      "NA"
+    ]
+  },
+  "1187": {
+    "annotated_at": "2026-03-31T04:29:49.420Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG17",
+    "sdg_secondary": [
+      "NA"
+    ]
+  },
+  "1196": {
+    "annotated_at": "2026-03-31T04:30:12.885Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG17",
+    "sdg_secondary": [
+      "SDG9",
+      "SDG11"
+    ]
+  },
+  "1198": {
+    "annotated_at": "2026-03-31T04:30:34.305Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG17"
+    ]
+  }
+}

@@ -1,0 +1,288 @@
+{
+  "57": {
+    "annotated_at": "2026-04-07T07:29:41.655Z",
+    "hold": false,
+    "rationale": "참여자 인건비 및 생계안정 지원은 저소득 취약계층의 소득·생활기반을 보전하여 빈곤 완화에 기여",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG1",
+    "sdg_secondary": [
+      "SDG8"
+    ]
+  },
+  "71": {
+    "annotated_at": "2026-04-07T07:30:09.056Z",
+    "hold": false,
+    "rationale": "안전한 운동환경 조성",
+    "red_tag": "B",
+    "sdg_primary": "SDG3",
+    "sdg_secondary": [
+      "SDG11"
+    ]
+  },
+  "159": {
+    "annotated_at": "2026-04-07T07:30:17.959Z",
+    "hold": false,
+    "rationale": "침수·범람으로부터 주민의 인명과 재산을 보호",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG11",
+    "sdg_secondary": [
+      "SDG6"
+    ]
+  },
+  "334": {
+    "annotated_at": "2026-04-07T07:31:22.879Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG9",
+      "SDG12"
+    ]
+  },
+  "366": {
+    "annotated_at": "2026-04-07T07:33:00.272Z",
+    "hold": false,
+    "rationale": "매립장 초소운영만으로 목표 달서 어려움",
+    "red_tag": "B",
+    "sdg_primary": "SDG13",
+    "sdg_secondary": [
+      "SDG15"
+    ]
+  },
+  "389": {
+    "annotated_at": "2026-04-07T07:33:12.111Z",
+    "hold": false,
+    "rationale": "농산물의 안전성과 생산 안정성을 높여 지속가능한 식량생산 체계와 식량안보 강화",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG2",
+    "sdg_secondary": [
+      "SDG6",
+      "SDG12"
+    ]
+  },
+  "424": {
+    "annotated_at": "2026-04-07T07:35:33.847Z",
+    "hold": false,
+    "rationale": "사회적 불평등을 줄이고, 교통환경 개선",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG10",
+    "sdg_secondary": [
+      "SDG11",
+      "SDG16"
+    ]
+  },
+  "449": {
+    "annotated_at": "2026-04-07T07:38:49.311Z",
+    "hold": false,
+    "rationale": "부모의 육아 부담을 줄이고, 돌봄과 육아를 나누는 공동체 문화 조성과 자원순환 기여",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG11",
+    "sdg_secondary": [
+      "SDG12"
+    ]
+  },
+  "486": {
+    "annotated_at": "2026-04-07T07:42:29.400Z",
+    "hold": false,
+    "rationale": "교육시설 개선으로 안전한 양질의 교육환경 제공",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG11",
+    "sdg_secondary": [
+      "SDG4"
+    ]
+  },
+  "496": {
+    "annotated_at": "2026-04-07T07:46:35.152Z",
+    "hold": false,
+    "rationale": "자원 남획·탈법 어업을 막아 수산자원·해양생태계 보전",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG14"
+  },
+  "529": {
+    "annotated_at": "2026-04-08T05:36:28.528Z",
+    "hold": false,
+    "rationale": "디지털 인프라 확충",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG9",
+    "sdg_secondary": [
+      "SDG11"
+    ]
+  },
+  "549": {
+    "annotated_at": "2026-04-08T05:39:23.357Z",
+    "hold": false,
+    "rationale": "인력의 전문성 제고는 공공서비스 품질을 높이고, 안정적인 일자리 제공에 기여",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG4"
+    ]
+  },
+  "582": {
+    "annotated_at": "2026-04-08T05:40:47.725Z",
+    "hold": false,
+    "rationale": "에너지 절감과 탄소배출 저감",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG13",
+    "sdg_secondary": [
+      "SDG11"
+    ]
+  },
+  "589": {
+    "annotated_at": "2026-04-08T05:42:44.117Z",
+    "hold": false,
+    "rationale": "저소득·취약계층 사전 발굴로 빈곤과 불평등 해소",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG1",
+    "sdg_secondary": [
+      "SDG10"
+    ]
+  },
+  "617": {
+    "annotated_at": "2026-04-08T05:46:46.292Z",
+    "hold": false,
+    "rationale": "안정적인 농업 생산을 할 수 있도록 기여",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG2",
+    "sdg_secondary": [
+      "SDG13"
+    ]
+  },
+  "635": {
+    "annotated_at": "2026-04-08T05:49:05.532Z",
+    "hold": false,
+    "rationale": "여성의 건강권과 차별 완화",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG5",
+    "sdg_secondary": [
+      "SDG10"
+    ]
+  },
+  "732": {
+    "annotated_at": "2026-04-08T05:51:36.412Z",
+    "hold": false,
+    "rationale": "관광객 유치로 농가 소득증대, 농촌공동체 유지에 기여",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG11"
+    ]
+  },
+  "894": {
+    "annotated_at": "2026-04-08T05:55:20.772Z",
+    "hold": false,
+    "rationale": "양계시설의 생산환경 개선으로 지속가능한 축산물 공급으로 지속가능한 먹거리 제공",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG12",
+    "sdg_secondary": [
+      "SDG2"
+    ]
+  },
+  "913": {
+    "annotated_at": "2026-04-08T05:58:26.061Z",
+    "hold": false,
+    "rationale": "국가안보 태세 강화에 기여하지만 사업이 상황실 운영이 성과로 연결되는 것은 무리",
+    "red_tag": "B",
+    "sdg_primary": "SDG16",
+    "sdg_secondary": [
+      "NA"
+    ]
+  },
+  "924": {
+    "annotated_at": "2026-04-08T06:01:32.700Z",
+    "hold": false,
+    "rationale": "안정적인 고용 유지로 양질의 교육 제공",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG4"
+    ]
+  },
+  "992": {
+    "annotated_at": "2026-04-08T06:03:42.791Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG3",
+    "sdg_secondary": [
+      "SDG10"
+    ]
+  },
+  "994": {
+    "annotated_at": "2026-04-08T06:05:49.356Z",
+    "hold": false,
+    "rationale": "퇴직 후 평생학습, 직업전환 등 지속가능한 평생학습 기회 제공",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG4",
+    "sdg_secondary": [
+      "SDG8"
+    ]
+  },
+  "1049": {
+    "annotated_at": "2026-04-08T06:06:16.580Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG3",
+    "sdg_secondary": [
+      "NA"
+    ]
+  },
+  "1052": {
+    "annotated_at": "2026-04-08T06:08:53.395Z",
+    "hold": false,
+    "rationale": "농외소득 증대로 농촌공동체 활성화에 기여",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG8",
+    "sdg_secondary": [
+      "SDG11"
+    ]
+  },
+  "1072": {
+    "annotated_at": "2026-04-08T06:10:18.467Z",
+    "hold": false,
+    "rationale": "공공기관의 접근성과 주민 만족도 증대",
+    "red_tag": "B",
+    "sdg_primary": "SDG11"
+  },
+  "1089": {
+    "annotated_at": "2026-04-08T06:11:12.331Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "B",
+    "sdg_primary": "SDG11"
+  },
+  "1090": {
+    "annotated_at": "2026-04-08T06:15:11.035Z",
+    "hold": false,
+    "rationale": "인프라 구축을 통한 식량생산 지원으로 지속가능한 먹거리와 일자리, 축산업 성장에 기여",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG9",
+    "sdg_secondary": [
+      "SDG2",
+      "SDG8"
+    ]
+  },
+  "1096": {
+    "annotated_at": "2026-04-08T06:16:37.364Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG9",
+    "sdg_secondary": [
+      "SDG8"
+    ]
+  },
+  "1098": {
+    "annotated_at": "2026-04-08T06:18:09.451Z",
+    "hold": false,
+    "rationale": "",
+    "red_tag": "RT-NONE",
+    "sdg_primary": "SDG9",
+    "sdg_secondary": [
+      "SDG2",
+      "SDG8"
+    ]
+  }
+}
