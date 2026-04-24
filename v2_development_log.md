@@ -299,3 +299,108 @@ if (ann.redTag && ann.redTag !== 'RT-NONE' && !ann.rationale) {
 - 종합계획서 v2.0: `D:/박정진/대학원(박사)/[박사-2]SDGs 논문/종합계획서/research_master_plan_v2.docx`
 - 종합 검토 보고서 (Critical 14건 + Warning 22건): `D:/박정진/클로드 코드/논문/_workspace/04_integrated_review_report.md`
 - v2 README: `D:/박정진/대학원(박사)/[박사-2]SDGs 논문/프로그램/annotation_tool/README.md`
+
+---
+
+## 부록 — 파일럿 50건 재선정 (2026-04-24, 안 A)
+
+### 배경
+
+2026-04-24 세션 7 말미에 연구 범위를 **옵션 C (경기도 31 + 전국 대표 광역 5~7개)** 로 확정. Gold Standard 1,200건을 경기 840 + 전국 360 (70/30)으로 재층화하는 결정에 맞춰, 파일럿 50건도 경기 840의 층 비율(대도시 30% / 도시 50% / 농촌 20%)에 정합시킬 필요가 생김.
+
+면담 안건 H(전국 광역 최종 선정)가 아직 미승인 상태이므로 **파일럿 단계는 경기도 단독 유지**(§10.7.5) 원칙을 준수, 안 A(층 비율만 조정)를 채택.
+
+### 변경 사양
+
+| 항목 | v1 (2026-03-27) | v2 (2026-04-24) |
+|---|:-:|:-:|
+| 총 건수 | 50 | 50 |
+| 대도시형 | 10 | **15** |
+| 도시형 | 26 | **25** |
+| 농촌형 | 14 | **10** |
+| 희소 25건 (SDG9/12/14/17) | 7/6/6/6 | 7/6/6/6 (유지) |
+| 희소 × 층 배분 | 무작위 | **사전 고정 행렬** (8/12/5) |
+| 일반 × 층 배분 | 무작위 | **(7/13/5)** |
+| 시드 | 42 | 42 |
+
+### 사용 스크립트
+
+- `D:/박정진/대학원(박사)/[박사-2]SDGs 논문/프로그램/pilot_resampler_v2.js` (Node.js)
+- 입력: 기존 `pilot.json` + `stage1_pool.json` + `stage2_pool.json` → 중복 제거로 GS 1,200 재구성
+- parquet 재처리 불필요 — 속도·재현성 유리
+
+### 산출물
+
+| 파일 | 내용 |
+|---|---|
+| `data/pilot.json` | v2 재선정본 50건 |
+| `data/pilot_assignments.json` | 3인 Blind 공통 50 sample_id (v2) |
+| `data/backup/pilot_v1_20260424.json` | v1 원본 백업 |
+| `data/backup/pilot_assignments_v1_20260424.json` | v1 할당표 백업 |
+| `data/pilot_v2_report.md` | 재선정 리포트 (층·희소·연도 분포) |
+
+### 연도 분포 (참고)
+
+2016:6 / 2017:2 / 2018:8 / 2019:3 / 2020:4 / 2021:6 / 2022:5 / 2023:7 / 2024:3 / 2025:6 → 10년 전부 커버
+
+### 영향 사항
+
+- v2 UI(`index_v2.html`)는 `data/pilot.json`을 동적 로드하므로 **코드 변경 없이 자동 반영**
+- v1 어노테이션 결과(`annotations_박정진.json`, `annotations_이종훈.json`)는 과거 50건 기준 → 새 50건으로 재라벨링 시 IAA는 처음부터 재측정
+- sample_id 교집합은 7건 (1098, 1104, 1108, 1118, 1152, 1164, 1196) — 신규 43건 추가, 구 43건 제외. Blind 원칙상 교집합 7건도 **백지 재라벨링 권장**
+
+### 후속 조치
+
+- [x] Firebase `sdg_pilot_v2_2026/` 경로 기존 데이터 아카이브 (v1 기준 50건 응답 보존) — v2 배포 이전 단계로 이동
+- [ ] 어노테이터 A·B·C에게 "파일럿 50건 재선정 완료, 백지 재라벨링 요청" 안내문 발송
+- [ ] v2 UI 접속 후 새 pilot.json 로드 여부 브라우저 캐시 초기화 포함 점검
+
+---
+
+## 부록 — v2 → 배포 승격 (2026-04-24)
+
+### 배경
+
+v2 개발본이 로컬 테스트(파일럿 모드 + Stage 1/2 분기)에서 기본 동작 검증을 마치고, 파일럿 50건 재선정(옵션 C 정합)까지 완료됨. 이제 배포 운영에 투입해도 충분한 성숙도 → `index.html`로 승격.
+
+v1(17개 병렬 버튼)은 재참조 가능성이 있어 삭제하지 않고 `archive/`로 이전.
+
+### 변경 내역 (파일시스템)
+
+| 이전 경로 | 이후 경로 | 비고 |
+|---|---|---|
+| `index.html` (v1, 46,370 B) | `archive/index_v1.html` | 배포 후에도 참고용 보존 |
+| `index-1.html` (v1 이전 백업, 45,878 B) | `archive/index_v1_legacy.html` | 구 백업 격리 |
+| `index_v2.html` (73,564 B) | **`index.html`** | 배포 기본 파일로 승격 |
+
+### GitHub Pages 영향
+
+- 배포 URL 구조 변경 없음 — 루트 `index.html`이 곧 v2
+- 기존 URL(`https://manturster-art.github.io/sdgs_annotation/`)에 접속하면 자동으로 v2 로드
+- 어노테이터는 **별도 경로 변경 불필요**, 단 브라우저 캐시 비우기 1회 권장
+
+### 어노테이터 공지 시 포함할 사항
+
+1. URL은 그대로 (브라우저 캐시는 Ctrl+Shift+R로 초기화)
+2. Stage 선택 드롭다운에서 `pilot` 선택
+3. 파일럿 50건이 새로 재선정됨 — 기존 기억 무시하고 백지에서 라벨링
+4. 3인 전원 동일 50건 Blind — 5P → SDG → Red Tag 순
+5. 완료 기한: (면담 후 확정)
+
+### 로컬 검증 (배포 전)
+
+- [x] 디렉토리 이동 후 `archive/` 포함 구조 확인
+- [ ] `python -m http.server 8000` → `http://localhost:8000/index.html` 접속
+- [ ] pilot_assignments.json 로드 → 어노테이터 선택 → pilot.json 50건 정상 표시
+- [ ] Firebase 연결 상태 (apiKey/databaseURL 입력 후)
+- [ ] 로컬 저장 + Firebase 동기화 동작
+
+### 롤백 방법
+
+긴급 롤백이 필요하면 다음 순서로 복원 가능:
+```bash
+cd annotation_tool/
+mv index.html index_v2.html
+mv archive/index_v1.html index.html
+git commit -am "rollback: v1 restored"
+```
