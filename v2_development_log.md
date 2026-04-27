@@ -404,3 +404,81 @@ mv index.html index_v2.html
 mv archive/index_v1.html index.html
 git commit -am "rollback: v1 restored"
 ```
+
+---
+
+## 2026-04-25 후반 — v2.1 패치 (Red Tag 4유형 확장)
+
+### 변경 사유
+
+본 연구 1편(paper1_korean v11) 빌드 시점에 Red Tag 분류 체계가 3유형(A/B/C)에서 **4유형(A/B/C/D)**로 확장됨. D 유형은 "데이터 불충분(Insufficient Evidence)"으로, 어노테이터가 사업 텍스트의 정보 부족으로 SDG 분류·Red Tag 판정을 자신 있게 수행할 수 없을 때 별도 표시. 코딩북 v1.6 → v1.7과 동기화하여 어노테이션 도구도 패치.
+
+### 결정 근거
+
+- 어노테이터 부담 분산: 정보 부족 사례를 강제 라벨링하지 않고 별도 구분
+- 분류기 학습 신호: 측정 불확실성(uncertainty) 신호로 활용
+- 파일럿 v1 disagreement 6개 패턴 중 일부(특히 텍스트 짧음 사례) 흡수
+- AHP 가중치(40/30/20/10) 변경 없음 — alternative만 확장
+
+### v2.1 변경 사항 (index.html)
+
+#### 1. Red Tag UI에 D 옵션 추가 (line 760~768 영역)
+
+```html
+<div class="redtag-option" data-val="C" onclick="selectRedTag('C')">
+  <div class="rt-code">유형 C</div>
+  <div class="rt-label">역행 투자 (Anti-SDG)</div>
+  <div class="rt-desc">SDG 달성에 역행하는 방향의 예산</div>
+</div>
+<!-- v2.1 신규 -->
+<div class="redtag-option" data-val="D" onclick="selectRedTag('D')">
+  <div class="rt-code">유형 D</div>
+  <div class="rt-label">데이터 불충분 (Insufficient Evidence)</div>
+  <div class="rt-desc">텍스트 부족·핵심 정보 누락으로 판정 불가</div>
+</div>
+```
+
+기존 grid-template-columns: 1fr 1fr (2열)을 그대로 두면 D가 2행 좌측에 단독 표시되어 약간 비대칭. 시각적 정렬이 필요하면 CSS를 1fr 1fr 1fr (3열)로 조정 가능 — 추후 사용자 피드백 따라 결정.
+
+#### 2. M-04 검증 메시지 갱신 (line 1626 영역)
+
+```js
+// 변경 전
+return 'Red Tag(A/B/C) 선택 시 판단 근거를 반드시 입력하세요 (한 줄).';
+// 변경 후
+return 'Red Tag(A/B/C/D) 선택 시 판단 근거를 반드시 입력하세요 (한 줄). D 유형은 어떤 정보가 부족한지 명기하세요.';
+```
+
+D 유형 선택 시에도 rationale 필수. 어떤 정보(사업목적/사업내용/추진계획 중)가 부족한지 명기하도록 가이드.
+
+### 영향 범위 (변경 안 한 항목)
+
+- **CSS** (line 266~278 .redtag-option): 색상 그대로 유지. D는 기존 .selected 스타일 사용 (오렌지). 향후 D 별도 색상(노란색 등) 권장 시 추가 패치.
+- **데이터 스키마** (1592 line `redTag: selRedTag || null`): null 또는 'A'/'B'/'C'/'D'/'RT-NONE' 문자열 — 이미 'D' 수용 가능
+- **CSV 출력** (1776 line `csvCell(ann.redTag || '')`): 자동 호환
+- **Firebase 보안 규칙**: 변경 없음 (값만 'D' 추가)
+- **파일럿 v2 시작 전 적용 가능**: 본 패치는 파일럿 v2 재라벨링 킥오프 전에 배포 필요
+
+### 후속 권고
+
+1. v2.1 UI 변경 사항을 파일럿 v2 어노테이터 3명에게 사전 안내
+2. 파일럿 v2 결과 분석 시 D 유형 사용률 별도 집계 (목표: 10~20%)
+3. D 유형이 30% 초과 시 코딩북 v1.7 추가 가이드 강화 필요
+4. CSS 3열 grid 적용 여부는 사용자 시각 검토 후 결정
+
+### 커밋 권고
+
+본 패치는 메인 paper1 저장소가 아닌 별도 annotation_tool 저장소에 커밋:
+
+```bash
+cd 프로그램/annotation_tool/
+git add index.html v2_development_log.md
+git commit -m "feat(v2.1): Red Tag 4유형 확장 — D 유형(데이터 불충분) 추가
+
+- index.html: Red Tag UI에 D 옵션 추가 (유형 D — 데이터 불충분)
+- index.html: M-04 검증 메시지 (A/B/C) → (A/B/C/D) 갱신
+- 코딩북 v1.6 → v1.7 동기화
+- 파일럿 v2 재라벨링 킥오프 전 배포
+
+상세: v2_development_log.md 2026-04-25 후반 절"
+```

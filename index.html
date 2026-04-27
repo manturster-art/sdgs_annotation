@@ -762,6 +762,11 @@
               <div class="rt-label">역행 투자 (Anti-SDG)</div>
               <div class="rt-desc">SDG 달성에 역행하는 방향의 예산</div>
             </div>
+            <div class="redtag-option" data-val="D" onclick="selectRedTag('D')">
+              <div class="rt-code">유형 D</div>
+              <div class="rt-label">데이터 불충분 (Insufficient Evidence)</div>
+              <div class="rt-desc">텍스트 부족·핵심 정보 누락으로 판정 불가</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1621,9 +1626,9 @@ function validateAnnotation(ann) {
     return '"애매함" 선택 시 연계목표를 최소 1개 선택하세요 (주목표가 불확실하므로 대안을 명시해야 합니다).';
   }
   if (!ann.redTag) return 'Red Tag를 선택하세요 (없으면 RT-NONE).';
-  // M-04: Red Tag A/B/C 선택 시 판단 근거 필수
+  // M-04: Red Tag A/B/C/D 선택 시 판단 근거 필수
   if (ann.redTag && ann.redTag !== 'RT-NONE' && !ann.rationale) {
-    return 'Red Tag(A/B/C) 선택 시 판단 근거를 반드시 입력하세요 (한 줄).';
+    return 'Red Tag(A/B/C/D) 선택 시 판단 근거를 반드시 입력하세요 (한 줄). D 유형은 어떤 정보가 부족한지 명기하세요.';
   }
   return null;
 }
