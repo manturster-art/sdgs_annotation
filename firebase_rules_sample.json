@@ -1,7 +1,7 @@
 {
   "_comment": "Firebase Realtime Database 보안 규칙 샘플 (v2 + 파일럿 v2)",
   "_howto": "Firebase Console > Realtime Database > Rules 탭에 아래 'rules' 객체만 붙여넣기",
-  "_warning": "실전 투입 전 반드시 Firebase Anonymous Auth를 활성화하고, UID→어노테이터 매핑 후 $uid 검증으로 교체할 것",
+  "_warning": "실전 투입 전 반드시 Firebase Anonymous Auth를 활성화하고, UID→코더 매핑 후 $uid 검증으로 교체할 것",
 
   "rules": {
     ".read": false,

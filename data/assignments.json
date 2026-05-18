@@ -1,7 +1,7 @@
 {
   "annotators": {
     "A": {
-      "name": "어노테이터 A",
+      "name": "코더 A",
       "stage1_samples": [
         4,
         6,
@@ -760,7 +760,7 @@
       ]
     },
     "B": {
-      "name": "어노테이터 B",
+      "name": "코더 B",
       "stage1_samples": [
         4,
         6,
@@ -1519,7 +1519,7 @@
       ]
     },
     "C": {
-      "name": "어노테이터 C",
+      "name": "코더 C",
       "stage1_samples": [
         4,
         6,

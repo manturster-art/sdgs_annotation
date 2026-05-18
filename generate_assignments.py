@@ -2,7 +2,7 @@
 """
 generate_assignments.py
 -----------------------
-Gold Standard 1,200건을 어노테이터 3명(A/B/C)에게 층화 분할하여
+Gold Standard 1,200건을 코더 3명(A/B/C)에게 층화 분할하여
 assignments.json + stage1_pool.json + stage2_pool.json 을 생성한다.
 
 입력: gold_standard_1200.xlsx (프로그램 디렉토리 기준)
@@ -14,7 +14,7 @@ assignments.json + stage1_pool.json + stage2_pool.json 을 생성한다.
 - 층화 키: 지자체유형(type) × 회계연도(year) × rare_class_flag
 
 저장 위치
-- data/assignments.json  : 어노테이터별 할당 맵
+- data/assignments.json  : 코더별 할당 맵
 - data/stage1_pool.json  : Stage 1 300건 (AI 비노출)
 - data/stage2_pool.json  : Stage 2 900건 (AI Top-3 노출)
 """
@@ -147,11 +147,11 @@ def main():
     for i, bucket in enumerate(solo_split):
         print(f"[INFO] Stage 2 분담({ANNOTATORS[i]}): {len(bucket)}건")
 
-    # ── 어노테이터별 할당 구성
+    # ── 코더별 할당 구성
     assignments = {"annotators": {}}
     for i, ann in enumerate(ANNOTATORS):
         assignments["annotators"][ann] = {
-            "name": f"어노테이터 {ann}",
+            "name": f"코더 {ann}",
             "stage1_samples": stage1_ids,  # 3명 전원 동일
             "stage2_samples": sorted(solo_split[i] + cross_ids),  # 본인 분담 + 교차 90건
             "stage2_crosscheck": cross_ids,  # 참고용 (어느 건이 교차인지)
