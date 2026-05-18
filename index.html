@@ -480,6 +480,71 @@
       background: var(--secondary); color: white; border: none;
     }
     .btn-guard-rechoose:hover { background: var(--primary); }
+
+    /* ====== 모바일 헤더 반응형 (옵션 1: 레이아웃 재정렬, 2026-05-16) ====== */
+    /* 증상: 좁은 화면에서 header-left / header-right 가 가로 분할되며
+       각 자식 요소(타이틀·badge·버튼)의 텍스트가 한 글자씩 세로로 쌓이는 문제.
+       원인: header 의 flex row + justify-content: space-between 가 모바일에서도 유지.
+       해결: 모바일에서 header 를 column 으로 stack + 자식 요소 white-space: nowrap. */
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px 14px;
+        gap: 8px;
+      }
+      .header-left {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+      .header-left h1 {
+        font-size: 14px;
+        white-space: nowrap;
+        flex: 0 0 auto;
+      }
+      .annotator-badge,
+      .stage-badge {
+        white-space: nowrap;
+        font-size: 11px;
+        padding: 3px 8px;
+        flex: 0 0 auto;
+      }
+      .header-right {
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .progress-wrap {
+        flex: 1 1 100%;
+        text-align: left;
+        order: 1;
+      }
+      .progress-label { font-size: 11px; }
+      .progress-bar-outer { width: 100%; height: 5px; }
+      .sync-badge {
+        white-space: nowrap;
+        order: 2;
+        flex: 0 1 auto;
+      }
+      .header-right .btn {
+        white-space: nowrap;
+        font-size: 12px;
+        padding: 5px 12px;
+        order: 3;
+        flex: 0 1 auto;
+      }
+    }
+
+    /* 매우 좁은 화면 (≤480px) — 추가 압축 */
+    @media (max-width: 480px) {
+      header { padding: 6px 12px; gap: 6px; }
+      .header-left h1 { font-size: 13px; }
+      .annotator-badge,
+      .stage-badge { font-size: 10px; padding: 2px 7px; }
+    }
   </style>
 </head>
 <body>
