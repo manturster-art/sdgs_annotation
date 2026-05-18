@@ -1,21 +1,24 @@
 # SDGs 예산 어노테이션 도구
 
-경기도 지자체 세부사업설명서 SDG 라벨링 웹 애플리케이션. **v2 (5P + AI Top-3 + 3-tier)**가 배포 기본.
+경기도 지자체 세부사업설명서 SDG 라벨링 웹 애플리케이션. **v2.1 (5P + AI Top-3 + 3-tier + Red Tag 4유형)**이 배포 기본.
 
-> 📌 2026-04-24: v2를 `index.html`로 승격, v1은 `archive/`로 이전. 파일럿 50건 옵션 C 층화 재선정 반영(대15/도25/농10).
+> 📌 2026-05-18 갱신: v2.1 — Red Tag D 유형(데이터 불충분) 추가, 코딩북 v1.9 동기화, docs/ 문서 3건 추가.
 
 ## 파일 구조
 
 ```
 annotation_tool/
-├── index.html                          ← ★ v2 배포본 (파일럿 + Stage 1 + Stage 2)
+├── index.html                          ← ★ v2.1 배포본 (파일럿 + Stage 1 + Stage 2)
 ├── archive/
 │   ├── index_v1.html                   ← v1 (17개 병렬 버튼, 보존용)
 │   └── index_v1_legacy.html            ← v1 이전 백업
 ├── generate_assignments.py             ← 1,200건 → 3명 층화 분할
 ├── convert_to_json.py                  ← xlsx → JSON 변환
+├── make_coding_book_v1_5.js            ← 코딩북 v1.5 빌더 (JSZip)
+├── make_coding_book_v1_6.js            ← 코딩북 v1.6 빌더 (JSZip, 주목표/연계목표 이원화)
 ├── data/
 │   ├── pilot.json                      ← 파일럿 50건 (v2 재선정, 2026-04-24)
+│   ├── pilot_50.xlsx                   ← 파일럿 50건 원본 엑셀
 │   ├── pilot_assignments.json          ← 파일럿 3인 Blind 공통 50 sample_id
 │   ├── stage1_pool.json                ← Stage 1 Blind 300건 레코드
 │   ├── stage2_pool.json                ← Stage 2 검수 900건 레코드
@@ -25,9 +28,14 @@ annotation_tool/
 │   └── backup/                         ← 원본 v1 데이터 백업
 │       ├── pilot_v1_20260424.json
 │       └── pilot_assignments_v1_20260424.json
+├── docs/
+│   ├── annotator_notice_v2_kickoff.md  ← 파일럿 v2 킥오프 어노테이터 안내문
+│   ├── firebase_auth_setup_guide.md    ← Firebase 인증 설정 가이드
+│   └── firebase_pilot_archive_procedure.md ← 파일럿 v1 데이터 아카이브 절차
 ├── firebase_rules_sample.json          ← Firebase 보안 규칙 샘플
 ├── README.md                           ← 이 파일
-└── v2_development_log.md               ← v2 개발·배포 이력
+├── v2_development_log.md               ← v2~v2.1 개발·배포 이력
+└── commit_msg_v21.txt                  ← v2.1 커밋 메시지 템플릿
 ```
 
 ## 배포 (GitHub Pages)
@@ -86,7 +94,7 @@ python ../ai_prelabeling/prelabel_gpt4o.py
    - **pilot / Stage 1 (Blind)**: 5P → SDG 2단계 직접 선택 (AI Top-3 미노출)
    - **Stage 2 (검수)**: AI Top-3 중 선택 or "기타" → 5P 직접
    - **확신도**: 확실함 / 애매함(추가 SDG 1~3개) / 모르겠음(skip)
-   - **Red Tag**: RT-NONE / A(SDG 상충, Nexus) / B(SDG Washing) / C(역행 투자, Anti-SDG)
+   - **Red Tag**: RT-NONE / A(SDG 상충, Nexus) / B(SDG Washing) / C(역행 투자, Anti-SDG) / **D(데이터 불충분, Insufficient Evidence)**
    - **판단 근거**: 한 줄 메모
 4. `Ctrl+S` 저장 / `Ctrl+Enter` 저장 후 다음
 5. 완료 후 "CSV 내보내기" → 연구자에게 제출
@@ -115,7 +123,7 @@ python ../ai_prelabeling/prelabel_gpt4o.py
   "chosenFromAI": true,
   "aiRank": 1,
   "tier": "certain",
-  "redTag": "RT-NONE",
+  "redTag": "RT-NONE",           // RT-NONE / A / B / C / D
   "rationale": "...",
   "timestamp": "2026-06-15T14:23:45.000Z",
   "durationSec": 87
@@ -143,7 +151,9 @@ python ../iaa/iaa_calculator.py --input pilot_v2.csv --output pilot_v2_iaa.md -n
 - Jaccard ≥ 0.45
 - 연계목표(additionalSdgs) 사용률 ≥ 20%
 
-미달 시 코딩북 v1.7 리비전 + Arbitration 발동.
+미달 시 코딩북 리비전 + Arbitration 발동.
+
+> 현재 코딩북: **v1.9** (2026-05 기준). 코딩북 빌더: `make_coding_book_v1_5.js`, `make_coding_book_v1_6.js`
 
 ## 버전 이력
 
@@ -151,5 +161,8 @@ python ../iaa/iaa_calculator.py --input pilot_v2.csv --output pilot_v2_iaa.md -n
 |---|---|---|
 | v1 | 2026-03 | 17개 병렬 버튼, 파일럿 50건 (경기도 단독) |
 | v2 | 2026-04-20 | 5P 필터 + AI Top-3 + 3-tier + 가드레일 |
+| v2 (v1.6 동기화) | 2026-04-23 | 주목표/연계목표 이원화 + Nexus 체크리스트 (코딩북 v1.6 연동) |
 | v2 (재선정) | 2026-04-24 | 파일럿 50건 옵션 C 층화 재선정 (대15/도25/농10) |
-| **v2 승격** | **2026-04-24** | **`index.html`로 승격, v1은 archive/로 이전** |
+| v2 승격 | 2026-04-24 | `index.html`로 승격, v1은 archive/로 이전 |
+| v2 (docs) | 2026-04-25 | 파일럿 v2 킥오프 안내문 + Firebase Auth 가이드 추가 |
+| **v2.1** | **2026-04-25** | **Red Tag 4유형 확장 — D 유형(데이터 불충분) 추가, 코딩북 v1.7 동기화** |
