@@ -22,14 +22,14 @@ annotation_tool/
 │   ├── pilot_assignments.json          ← 파일럿 3인 Blind 공통 50 sample_id
 │   ├── stage1_pool.json                ← Stage 1 Blind 300건 레코드
 │   ├── stage2_pool.json                ← Stage 2 검수 900건 레코드
-│   ├── assignments.json                ← Stage 1/2 어노테이터별 할당
+│   ├── assignments.json                ← Stage 1/2 코더별 할당
 │   ├── ai_prelabels.json               ← GPT-4o 사전 분류 Top-3 (Stage 2용, 선택)
 │   ├── pilot_v2_report.md              ← 파일럿 재선정 리포트
 │   └── backup/                         ← 원본 v1 데이터 백업
 │       ├── pilot_v1_20260424.json
 │       └── pilot_assignments_v1_20260424.json
 ├── docs/
-│   ├── annotator_notice_v2_kickoff.md  ← 파일럿 v2 킥오프 어노테이터 안내문
+│   ├── annotator_notice_v2_kickoff.md  ← 파일럿 v2 킥오프 코더 안내문
 │   ├── firebase_auth_setup_guide.md    ← Firebase 인증 설정 가이드
 │   └── firebase_pilot_archive_procedure.md ← 파일럿 v1 데이터 아카이브 절차
 ├── firebase_rules_sample.json          ← Firebase 보안 규칙 샘플
@@ -86,10 +86,10 @@ python ../ai_prelabeling/prelabel_gpt4o.py
 }
 ```
 
-## 어노테이터 사용법
+## 코더 사용법
 
 1. 배포 URL 접속
-2. 어노테이터 코드(A/B/C) + Stage(`pilot` / `1` / `2`) 선택
+2. 코더 코드(A/B/C) + Stage(`pilot` / `1` / `2`) 선택
 3. 한 건씩 라벨링
    - **pilot / Stage 1 (Blind)**: 5P → SDG 2단계 직접 선택 (AI Top-3 미노출)
    - **Stage 2 (검수)**: AI Top-3 중 선택 or "기타" → 5P 직접

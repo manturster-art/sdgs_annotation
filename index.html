@@ -603,7 +603,7 @@
   <header>
     <div class="header-left">
       <h1>🏷️ SDGs 어노테이션 v2</h1>
-      <span class="annotator-badge" id="header-annotator">어노테이터: —</span>
+      <span class="annotator-badge" id="header-annotator">코더: —</span>
       <span class="stage-badge s1" id="header-stage">Stage —</span>
     </div>
     <div class="header-right">
@@ -1117,7 +1117,7 @@ function autoMatchSlot() {
   let matched = null;
   for (const [slot, info] of Object.entries(map.annotators)) {
     const nm = (info.name || '').trim();
-    // "어노테이터 A (박정진)" 패턴에서 이름 매칭
+    // "코더 A (박정진)" 패턴에서 이름 매칭
     if (nm && nm.includes(fullName)) { matched = slot; break; }
   }
   if (matched) {
@@ -1230,7 +1230,7 @@ async function startSession() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('header-annotator').textContent =
-    '어노테이터: ' + annotatorName + (annotatorFullName ? ' · ' + annotatorFullName : '');
+    '코더: ' + annotatorName + (annotatorFullName ? ' · ' + annotatorFullName : '');
   const sb = document.getElementById('header-stage');
   if (isPilot) {
     sb.textContent = '🧪 파일럿 · 50건';
