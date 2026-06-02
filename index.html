@@ -1207,6 +1207,15 @@ async function startSession() {
         });
         localStorage.setItem(storageKey, JSON.stringify(annotations));
       }
+      // 로컬에만 있는 데이터를 Firebase로 일괄 업로드 (최초 연결 시 마이그레이션)
+      const localOnly = {};
+      Object.entries(annotations).forEach(([id, ann]) => {
+        if (!snap.exists() || !snap.val()[id]) localOnly[id] = ann;
+      });
+      if (Object.keys(localOnly).length > 0) {
+        await db.ref(path).update(localOnly);
+        console.log(`[마이그레이션] 로컬 → Firebase: ${Object.keys(localOnly).length}건 업로드`);
+      }
       setSyncStatus('ok', '🔥 Firebase 연결됨');
       db.ref(path).on('child_changed', snap => {
         annotations[snap.key] = snap.val();
