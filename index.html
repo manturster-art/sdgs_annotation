@@ -577,11 +577,13 @@
       <option value="A">슬롯 A</option>
       <option value="B">슬롯 B</option>
       <option value="C">슬롯 C</option>
+      <option value="DEMO">🎓 데모 슬롯 (시연용)</option>
     </select>
 
     <label for="stage-select">모드 선택</label>
     <select id="stage-select">
       <option value="">— 선택하세요 —</option>
+      <option value="demo">🎓 데모 (지도교수 시연용) — 로컬 전용·데이터 격리, 8건</option>
       <option value="pilot">🧪 파일럿 (50건) — v1 비교용 재라벨링</option>
       <option value="1">Stage 1 — Blind (AI 숨김, 300건)</option>
       <option value="2">Stage 2 — 검수 (AI Top-3 노출, 300~330건)</option>
@@ -897,6 +899,8 @@ const DB_PROJECT_PILOT = 'sdg_pilot_v2_2026';
 // localStorage 네임스페이스
 const STORAGE_PREFIX_MAIN  = 'sdg_anno_v2_';
 const STORAGE_PREFIX_PILOT = 'sdg_pilot_v2_';
+// 데모(시연용) 네임스페이스 — Firebase 미연결, 로컬 전용. 실제 데이터와 완전 격리.
+const STORAGE_PREFIX_DEMO  = 'sdg_demo_v2_';
 // 런타임 결정값 (startSession에서 셋)
 let DB_PROJECT     = DB_PROJECT_MAIN;
 let STORAGE_PREFIX = STORAGE_PREFIX_MAIN;
@@ -988,13 +992,15 @@ const SDG_GUARD_RULES = {
 let records = [];             // 현재 모드의 레코드 풀
 let assignmentMap = null;     // 본 라벨링 assignments.json (Stage 1/2)
 let pilotAssignmentMap = null;// 파일럿 assignments (pilot_assignments.json)
+let demoAssignmentMap = null; // 데모 assignments (demo_assignments.json)
 let aiPrelabels = {};         // {sample_id: [{sdg, prob}, ...]}  Stage 2만 사용
 let annotations = {};
 let currentIdx = 0;
-let annotatorName = '';       // 슬롯 코드 (A/B/C)
+let annotatorName = '';       // 슬롯 코드 (A/B/C/DEMO)
 let annotatorFullName = '';   // 본인 이름 (예: "박정진")
-let stageNum = '1';           // '1' | '2' | 'pilot'
+let stageNum = '1';           // '1' | '2' | 'pilot' | 'demo'
 let isPilot = false;          // 편의 플래그 (startSession에서 셋)
+let isDemo = false;           // 데모(시연용) 플래그 (startSession에서 셋)
 let db = null;
 let renderTime = 0;           // 현재 레코드 표시 시작 타임스탬프
 let durationTimer = null;
@@ -1078,6 +1084,16 @@ async function loadBootstrap() {
     statusParts.push('파일럿 ❌');
   }
 
+  // 데모 assignments (시연용, 없으면 무시)
+  try {
+    const rD = await fetch('data/demo_assignments.json');
+    if (rD.ok) {
+      demoAssignmentMap = await rD.json();
+      statusParts.push(`데모 ${Object.keys(demoAssignmentMap.annotators || {}).length}슬롯`);
+      anyLoaded = true;
+    }
+  } catch (e) { /* 데모 파일 없으면 데모 모드만 비활성, 무시 */ }
+
   // AI prelabels (Stage 2만 사용)
   try {
     const r3 = await fetch('data/ai_prelabels.json');
@@ -1114,6 +1130,13 @@ function autoMatchSlot() {
   if (!fullName) { noteEl.textContent = ''; return; }
 
   const stg = document.getElementById('stage-select').value;
+  // 데모 모드는 슬롯 매칭 불필요 — DEMO 슬롯 자동 선택
+  if (stg === 'demo') {
+    slotSel.value = 'DEMO';
+    noteEl.textContent = '→ 데모 슬롯 (시연용 · 로컬 전용)';
+    noteEl.style.color = 'var(--green)';
+    return;
+  }
   const map = (stg === 'pilot') ? pilotAssignmentMap : assignmentMap;
   if (!map || !map.annotators) { noteEl.textContent = ''; return; }
 
@@ -1138,7 +1161,7 @@ function checkCanStart() {
   const stg = document.getElementById('stage-select').value;
   const fullName = document.getElementById('annotator-full-name').value.trim();
   // 선택한 모드에 맞는 assignmentMap이 로드돼 있어야 시작 가능
-  const map = (stg === 'pilot') ? pilotAssignmentMap : assignmentMap;
+  const map = (stg === 'demo') ? demoAssignmentMap : (stg === 'pilot') ? pilotAssignmentMap : assignmentMap;
   document.getElementById('start-btn').disabled = !(ann && stg && map && fullName);
 }
 
@@ -1149,29 +1172,33 @@ async function startSession() {
   if (!annotatorName || !stageNum || !annotatorFullName) return;
 
   isPilot = (stageNum === 'pilot');
+  isDemo  = (stageNum === 'demo');
   // 모드별 런타임 설정
   DB_PROJECT     = isPilot ? DB_PROJECT_PILOT     : DB_PROJECT_MAIN;
-  STORAGE_PREFIX = isPilot ? STORAGE_PREFIX_PILOT : STORAGE_PREFIX_MAIN;
+  STORAGE_PREFIX = isDemo  ? STORAGE_PREFIX_DEMO
+                 : isPilot ? STORAGE_PREFIX_PILOT : STORAGE_PREFIX_MAIN;
 
   const btn = document.getElementById('start-btn');
   btn.disabled = true;
   btn.textContent = '⏳ 연결 중...';
 
-  db = initFirebase();
+  // 데모는 Firebase 미연결 (로컬 전용) — 실제 데이터에 절대 흔적 남기지 않음
+  db = isDemo ? null : initFirebase();
 
   // 모드별 할당 맵·ID 추출
-  const map = isPilot ? pilotAssignmentMap : assignmentMap;
+  const map = isDemo ? demoAssignmentMap : isPilot ? pilotAssignmentMap : assignmentMap;
   if (!map) { alert('할당 맵이 로드되지 않았습니다.'); return; }
   const slot = map.annotators[annotatorName];
   if (!slot) { alert('할당 정보 없음: ' + annotatorName); return; }
 
   let ids;
-  if (isPilot)                    ids = slot.pilot_samples  || [];
+  if (isDemo)                     ids = slot.demo_samples   || [];
+  else if (isPilot)               ids = slot.pilot_samples  || [];
   else if (stageNum === '1')      ids = slot.stage1_samples || [];
   else                             ids = slot.stage2_samples || [];
 
-  // 모드별 풀 파일
-  const poolFile = isPilot ? 'data/pilot.json' : `data/stage${stageNum}_pool.json`;
+  // 모드별 풀 파일 (데모는 파일럿 풀 재사용)
+  const poolFile = (isDemo || isPilot) ? 'data/pilot.json' : `data/stage${stageNum}_pool.json`;
   let pool = [];
   try {
     const r = await fetch(poolFile);
@@ -1186,7 +1213,7 @@ async function startSession() {
   if (records.length === 0) { alert('할당된 레코드가 없습니다.'); return; }
 
   // 로컬 저장 키 (모드별 네임스페이스)
-  const stageTag = isPilot ? 'pilot' : ('s' + stageNum);
+  const stageTag = isDemo ? 'demo' : isPilot ? 'pilot' : ('s' + stageNum);
   const storageKey = STORAGE_PREFIX + annotatorName + '_' + stageTag;
   const saved = localStorage.getItem(storageKey);
   annotations = saved ? JSON.parse(saved) : {};
@@ -1244,7 +1271,10 @@ async function startSession() {
   document.getElementById('header-annotator').textContent =
     '코더: ' + annotatorName + (annotatorFullName ? ' · ' + annotatorFullName : '');
   const sb = document.getElementById('header-stage');
-  if (isPilot) {
+  if (isDemo) {
+    sb.textContent = '🎓 데모 · 시연용 (로컬)';
+    sb.className = 'stage-badge s-pilot';
+  } else if (isPilot) {
     sb.textContent = '🧪 파일럿 · 50건';
     sb.className = 'stage-badge s-pilot';
   } else {
@@ -1718,7 +1748,7 @@ function saveAnnotation() {
   const id = ann.sample_id;
   annotations[id] = ann;
 
-  const stageTag = isPilot ? 'pilot' : ('s' + stageNum);
+  const stageTag = isDemo ? 'demo' : isPilot ? 'pilot' : ('s' + stageNum);
   const storageKey = STORAGE_PREFIX + annotatorName + '_' + stageTag;
   localStorage.setItem(storageKey, JSON.stringify(annotations));
 
@@ -1875,7 +1905,7 @@ function exportCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const modeTag = isPilot ? 'pilot' : ('s' + stageNum);
+  const modeTag = isDemo ? 'demo' : isPilot ? 'pilot' : ('s' + stageNum);
   a.download = `annotations_${annotatorName}_${modeTag}_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);

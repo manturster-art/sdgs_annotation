@@ -1,0 +1,13 @@
+{
+  "mode": "demo",
+  "version": "v1 (지도교수 시연용)",
+  "description": "데모(시연) 모드 — 파일럿 50건 중 SDG·계층 다양성을 고려해 8건 선정. Firebase 미연결·로컬 전용으로 실제 연구 데이터(파일럿·본 라벨링)와 완전 격리.",
+  "note": "교수님이 자유롭게 클릭·저장해도 sdg_pilot_v2_2026 / sdg_main_2026 경로에 흔적이 남지 않습니다. localStorage 네임스페이스는 sdg_demo_v2_.",
+  "source_records": "data/pilot.json",
+  "annotators": {
+    "DEMO": {
+      "name": "데모 슬롯 (시연용)",
+      "demo_samples": [19, 76, 305, 346, 371, 543, 974, 1108]
+    }
+  }
+}
