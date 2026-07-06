@@ -841,7 +841,7 @@
         </div>
         <div class="status-msg" id="status-msg">저장됨</div>
         <div class="save-btn-row">
-          <button class="btn btn-secondary" onclick="saveAndStay()">💾 저장</button>
+          <button class="btn btn-secondary" id="btn-save-stay" onclick="saveAndStay()">💾 저장</button>
           <button class="btn btn-success" id="btn-save-next" onclick="saveAndNext()">저장 후 다음 ▶</button>
         </div>
       </div>
@@ -999,6 +999,10 @@ let isDemo = false;           // 데모(시연용) 플래그 (startSession에서
 let db = null;
 let renderTime = 0;           // 현재 레코드 표시 시작 타임스탬프
 let durationTimer = null;
+
+// S1-3 미저장 입력 보호 · S1-5a 저장 재진입 잠금 (통합 상태 모델)
+let dirtyBaseline = '';       // 현재 레코드 진입/저장 시점의 입력 내용 서명 (isDirty 비교 기준)
+let saving = false;           // 저장 처리 중 재진입 잠금 (연타 방지)
 
 // Current selection state
 let selPrimarySdg = '';
@@ -1192,6 +1196,22 @@ async function startSession() {
   else if (stageNum === '1')      ids = slot.stage1_samples || [];
   else                             ids = slot.stage2_samples || [];
 
+  // S1-8: 슬롯 오선택 방지 — 시작 직전 슬롯·모드·건수를 요약해 명시적 확인을 받는다.
+  // (데모는 로컬 전용 시연이라 확인 생략) 취소 시 시작 버튼을 원상 복구한다.
+  if (!isDemo) {
+    const modeLabel = isPilot ? '파일럿'
+                    : (stageNum === '1' ? 'Stage 1' : 'Stage 2');
+    const ok = confirm(
+      `슬롯 ${annotatorName} · ${modeLabel} · ${ids.length}건으로 시작합니다.\n` +
+      `코더: ${annotatorFullName}\n\n본인에게 배정된 슬롯이 맞습니까?`
+    );
+    if (!ok) {
+      btn.disabled = false;
+      btn.textContent = '▶ 라벨링 시작';
+      return;
+    }
+  }
+
   // 모드별 풀 파일 (데모는 파일럿 풀 재사용)
   const poolFile = (isDemo || isPilot) ? 'data/pilot.json' : `data/stage${stageNum}_pool.json`;
   let pool = [];
@@ -1229,10 +1249,13 @@ async function startSession() {
         });
         localStorage.setItem(storageKey, JSON.stringify(annotations));
       }
-      // 로컬에만 있는 데이터를 Firebase로 일괄 업로드 (최초 연결 시 마이그레이션)
+      // 로컬에만 있거나 로컬이 더 최신인 데이터를 Firebase로 일괄 업로드 (최초 연결 시 마이그레이션)
+      // S1-5b(F3): 존재 여부만 보던 조건을 timestamp 비교까지 확장 — 오프라인 재수정본도 재전파.
+      const fbData = snap.exists() ? snap.val() : {};
       const localOnly = {};
       Object.entries(annotations).forEach(([id, ann]) => {
-        if (!snap.exists() || !snap.val()[id]) localOnly[id] = ann;
+        const remote = fbData[id];
+        if (!remote || new Date(ann.timestamp) > new Date(remote.timestamp)) localOnly[id] = ann;
       });
       if (Object.keys(localOnly).length > 0) {
         await db.ref(path).update(localOnly);
@@ -1365,6 +1388,9 @@ function renderRecord() {
   hideStatus();
   updateStats();
   updateMiniGrid();
+
+  // S1-3: 새 레코드 기준으로 dirty 기준선 리셋 (복원된 저장본 = 기준선, 이후 변경만 dirty)
+  resetDirtyBaseline();
 }
 
 function renderAiTopK(id) {
@@ -1726,54 +1752,120 @@ function validateAnnotation(ann) {
   return null;
 }
 
+// S1-5a: 저장 버튼 연타/재진입 방지 잠금 헬퍼 — 두 저장 버튼을 함께 잠그고 푼다
+function setSaveLock(on) {
+  saving = on;
+  const b1 = document.getElementById('btn-save-next');
+  const b2 = document.getElementById('btn-save-stay');
+  if (b1) b1.disabled = on || (currentIdx === records.length - 1);
+  if (b2) b2.disabled = on;
+}
+
 function saveAnnotation() {
+  if (saving) return false;                        // S1-5a 재진입 잠금 (연타 차단)
+
   const ann = collectAnnotation();
   const err = validateAnnotation(ann);
   if (err) { showStatus(err, 'error'); return false; }
 
+  setSaveLock(true);
   const id = ann.sample_id;
   annotations[id] = ann;
 
   const stageTag = isDemo ? 'demo' : isPilot ? 'pilot' : ('s' + stageNum);
   const storageKey = STORAGE_PREFIX + annotatorName + '_' + stageTag;
-  localStorage.setItem(storageKey, JSON.stringify(annotations));
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(annotations));
+  } catch (e) {
+    // 로컬 저장조차 실패(용량초과 등) — 저장 실패로 처리하고 잠금 해제
+    console.warn('localStorage 저장 실패:', e.message);
+    showStatus('⚠ 로컬 저장 실패 (' + e.message + ') — 저장되지 않았습니다.', 'error');
+    setSaveLock(false);
+    return false;
+  }
 
   if (db) {
     setSyncStatus('syncing', '동기화 중...');
     const fbStageKey = isPilot ? 'pilot' : ('stage' + stageNum);
     const path = `${DB_PROJECT}/${fbStageKey}/${annotatorName}/${id}`;
-    db.ref(path).set(ann)
+    // S1-5c: 실패 시 1회 재시도, 그래도 실패하면 "서버 미반영"을 숨기지 않고 명시
+    const attempt = (retry) => db.ref(path).set(ann)
       .then(() => setSyncStatus('ok', '🔥 동기화 완료'))
       .catch(e => {
-        console.warn('Firebase 저장 실패:', e.message);
-        setSyncStatus('error', '⚠ 로컬 저장됨');
+        console.warn('Firebase 저장 실패:', e.message, retry ? '(재시도)' : '(재시도 소진)');
+        if (retry) return new Promise(res => setTimeout(res, 1000)).then(() => attempt(false));
+        setSyncStatus('error', '⚠ 서버 미반영 (로컬만 저장)');
+        showStatus('⚠ 로컬에는 저장됐으나 서버 동기화 실패 — 인터넷 연결 확인 후 다시 저장하세요.', 'error');
       });
+    attempt(true);
   }
 
+  // S1-3: 저장 성공 시점 = dirty clear 시점 (기준선을 방금 저장한 내용으로 갱신)
+  resetDirtyBaseline();
   showStatus(db ? '✓ 저장 및 Firebase 동기화' : '✓ 저장됨 (로컬)', 'saved');
   updateStats();
   updateMiniGrid();
+  // S1-5a: 연타의 2차 클릭이 '다음 레코드'에 실행되는 것을 막기 위해 짧은 디바운스 후 해제.
+  // (동기 저장은 이미 끝났고, 이 창은 인접 레코드 훼손·건너뜀만 차단한다.)
+  setTimeout(() => setSaveLock(false), 400);
   return true;
 }
 
 function saveAndStay() { saveAnnotation(); }
-function saveAndNext() { if (saveAnnotation()) navigate(1); }
+// 저장 성공 시 이동은 이미 저장으로 확정됐으므로 dirty 가드를 거치지 않고 직접 이동한다.
+function saveAndNext() {
+  if (saveAnnotation() && currentIdx < records.length - 1) gotoIndex(currentIdx + 1);
+}
+
+// ══════════════════════════════════════════
+//  S1-3 미저장 입력 보호 (dirty 가드)
+// ══════════════════════════════════════════
+// 사용자 입력 내용만 뽑아 서명한다. timestamp·durationSec 등 휘발성/자동 필드는 제외해
+// 단순 열람 이동이 오탐(dirty)으로 잡히지 않게 한다. (chosenFromAI/aiRank는 F-3 별도 이슈라 제외)
+function annotationSignature() {
+  const ann = collectAnnotation();
+  return JSON.stringify({
+    sdgPath: ann.sdgPath,
+    tier: ann.tier,
+    redTag: ann.redTag,
+    rationale: ann.rationale,
+    beneficiary: ann.beneficiary,
+    sdgGuardResponses: ann.sdgGuardResponses,
+  });
+}
+// 현재 레코드의 dirty 기준선을 현재 입력 상태로 재설정 (레코드 진입·저장 성공 시 호출)
+function resetDirtyBaseline() {
+  dirtyBaseline = annotationSignature();
+}
+// 현재 레코드에 미저장 변경이 있는가
+function isDirty() {
+  return annotationSignature() !== dirtyBaseline;
+}
+// 미저장 변경이 있으면 확인을 받고, 승인 시에만 이동을 수행한다. (5개 이동 경로 공통 가드)
+function guardNavigation(proceed) {
+  if (saving) return;   // 저장 처리 중에는 이동 가드가 이중 발동하지 않도록 차단
+  if (isDirty() && !confirm('저장하지 않은 변경이 있습니다. 저장하지 않고 이동하시겠습니까?')) return;
+  proceed();
+}
 
 // ══════════════════════════════════════════
 //  NAV
 // ══════════════════════════════════════════
+// 실제 이동+렌더 (가드 통과 후에만 호출). saveAndNext는 저장으로 확정됐으므로 직접 호출한다.
+function gotoIndex(idx) {
+  currentIdx = idx;
+  renderRecord();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 function navigate(dir) {
   const next = currentIdx + dir;
   if (next < 0 || next >= records.length) return;
-  currentIdx = next;
-  renderRecord();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  guardNavigation(() => gotoIndex(next));
 }
 function jumpTo() {
   const v = parseInt(document.getElementById('jump-input').value) - 1;
   if (isNaN(v) || v < 0 || v >= records.length) return;
-  currentIdx = v;
-  renderRecord();
+  guardNavigation(() => gotoIndex(v));
 }
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
@@ -1781,6 +1873,10 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
   if (e.key === 'Enter' && e.ctrlKey) saveAndNext();
   if (e.key === 's' && e.ctrlKey) { e.preventDefault(); saveAndStay(); }
+});
+// S1-3(c) 이탈 경고: 미저장 변경이 있는 상태로 새로고침·탭 종료·뒤로가기 시 브라우저 확인
+window.addEventListener('beforeunload', e => {
+  if (records.length && isDirty()) { e.preventDefault(); e.returnValue = ''; }
 });
 
 // ══════════════════════════════════════════
@@ -1816,7 +1912,7 @@ function buildMiniGrid() {
     d.title = `#${i+1} · ID ${id} · ${r['세부사업명'] || ''}`;
     d.dataset.idx = i;
     if (crossSet.has(String(id))) d.classList.add('cross');
-    d.onclick = () => { currentIdx = i; renderRecord(); };
+    d.onclick = () => guardNavigation(() => { currentIdx = i; renderRecord(); });
     grid.appendChild(d);
   });
   updateMiniGrid();
