@@ -1,0 +1,69 @@
+{
+  "_comment": "Firebase RTDB 보안 규칙 — 강화 초안(S1-4). 익명 인증(auth != null) 요구 + 슬롯별 쓰기 범위 검증 + 삭제 차단. 콘솔 적용 필요(로컬 미검증). 원본 firebase_rules_sample.json은 미수정 보존.",
+  "_status": "DRAFT — 콘솔 미배포. Firebase Console > Realtime Database > Rules 에 'rules' 객체만 붙여넣기 전, 아래 _backward_compat / _deletion_policy 를 반드시 검토할 것.",
+  "_baseline": "firebase_rules_sample.json(옵션 ①)을 기준으로, 삭제 차단(.write 세분화)과 하위호환 검증을 추가한 중간 단계. 이메일/비밀번호 슬롯 매칭(옵션 ③, firebase_auth_setup_guide.md §4)은 별개의 상위 단계이며 본 초안과 배타적이지 않다(§전환 경로 참조).",
+
+  "_auth_model": "익명 인증(signInAnonymously). 클라이언트는 UID를 슬롯에 매핑하지 않으므로 '$annotator 값이 곧 슬롯'이라는 규약 의존은 유지된다. 본 초안이 막는 것은 (1) URL만 아는 완전 비인증 외부자의 쓰기/읽기, (2) 자기 브랜치 통째 삭제. 막지 못하는 것은 익명 로그인한 코더가 타 슬롯 경로에 쓰는 교차 쓰기(이는 옵션 ③에서만 DB 레벨 차단).",
+
+  "_backward_compat": "현행 클라이언트가 쓰는 필드(sample_id, annotator, stage[main만], tier, timestamp + 기타 자유필드)를 그대로 허용한다. validate 는 sample 규칙과 동일 필드 집합을 요구하므로 기존 파일럿 v2 쓰기 스키마를 깨지 않는다. 단 auth != null 요구는 신규이므로, 규칙 배포 전에 클라이언트가 signInAnonymously 를 호출하도록 먼저 배포해야 한다(순서 역전 시 전 코더 쓰기 실패 — 체크리스트 §순서 참조).",
+
+  "_deletion_policy": "삭제(=null 쓰기)를 값 존재 검증으로 차단한다. $sample_id 레벨에서 newData.exists() 를 validate 로 강제하면 개별 샘플 삭제가 거부된다. 브랜치 통째 null 쓰기는 $annotator.$sample_id 하위가 전부 검증을 통과해야 하므로 사실상 불가. 정당한 아카이브 삭제(archive_procedure Step 4)는 콘솔 소유자 권한으로 수행하며, 콘솔 편집은 규칙을 우회하므로 영향받지 않는다.",
+
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "sdg_main_2026": {
+      ".read":  "auth != null",
+      ".indexOn": ["timestamp"],
+      "$stage": {
+        ".validate": "$stage === 'stage1' || $stage === 'stage2'",
+        "$annotator": {
+          ".read":  "auth != null",
+          ".write": "auth != null",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
+            "annotator":  { ".validate": "newData.val() === $annotator" },
+            "stage":      { ".validate": "newData.isString() || newData.isNumber()" },
+            "sample_id":  { ".validate": "newData.isString() || newData.isNumber()" },
+            "tier":       { ".validate": "newData.isString()" },
+            "timestamp":  { ".validate": "newData.isString()" },
+            "$other":     { ".validate": true }
+          }
+        }
+      }
+    },
+
+    "sdg_pilot_v2_2026": {
+      ".read":  "auth != null",
+      ".indexOn": ["timestamp"],
+      "$stage": {
+        ".validate": "$stage === 'pilot'",
+        "$annotator": {
+          ".read":  "auth != null",
+          ".write": "auth != null",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'tier', 'timestamp'])",
+            "annotator":  { ".validate": "newData.val() === $annotator" },
+            "sample_id":  { ".validate": "newData.isString() || newData.isNumber()" },
+            "tier":       { ".validate": "newData.isString()" },
+            "timestamp":  { ".validate": "newData.isString()" },
+            "$other":     { ".validate": true }
+          }
+        }
+      }
+    },
+
+    "_legacy_v1": {
+      "_comment": "v1 파일럿(sdgs-annotation-52f47) 데이터는 read-only 아카이브",
+      ".read":  "auth != null",
+      ".write": false
+    },
+
+    "_legacy_v1_pilot_20260424": {
+      "_comment": "2026-04-24 파일럿 재선정 시 아카이브된 구 응답(archive_procedure 옵션 A). 존재 시 read-only.",
+      ".read":  "auth != null",
+      ".write": false
+    }
+  }
+}
