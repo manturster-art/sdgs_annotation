@@ -147,6 +147,25 @@
     .field-block.tertiary .field-label { background: #F3F4F6; color: #374151; }
     .field-text { padding: 10px 12px; font-size: 14px; line-height: 1.7; background: white; }
     .field-empty { color: var(--muted); font-style: italic; font-size: 13px; }
+    /* 예산 참고 정보 (S1-7) — 라벨 판단 근거 아님. 시각적으로 라벨 입력과 분리된 회색 박스 */
+    .budget-ref-card {
+      margin: 0 20px 16px; padding: 10px 14px;
+      background: #F3F4F6; border: 1px solid var(--border);
+      border-left: 3px solid #9CA3AF; border-radius: 8px;
+    }
+    .budget-ref-title {
+      font-size: 11px; font-weight: 700; color: #4B5563;
+      letter-spacing: .03em; margin-bottom: 8px;
+    }
+    .budget-ref-title .budget-ref-caveat { font-weight: 500; color: var(--muted); }
+    .budget-ref-grid {
+      display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: baseline;
+    }
+    .budget-ref-item { font-size: 13px; color: #374151; }
+    .budget-ref-item .budget-ref-k { color: var(--muted); margin-right: 6px; }
+    .budget-ref-item .budget-ref-v { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .budget-ref-item.is-over .budget-ref-v { color: #B45309; }
+    .budget-ref-item.is-na .budget-ref-v { color: var(--muted); font-weight: 600; }
     .record-nav {
       display: flex; align-items: center; justify-content: center; gap: 12px;
       padding: 14px 20px; border-top: 1px solid var(--border); background: #FAFBFE;
@@ -642,6 +661,12 @@
             <div class="field-label">📎 추진계획 (planCn) — 보조 참조</div>
             <div class="field-text" id="field-plan">—</div>
           </div>
+        </div>
+
+        <!-- S1-7: 예산현액·집행률 참고 정보 (읽기 전용, 라벨 판단 근거 아님 · Stage 1·2 동일 노출) -->
+        <div class="budget-ref-card" id="budget-ref-card">
+          <div class="budget-ref-title">💰 참고 정보 — 예산현액·집행률 <span class="budget-ref-caveat">(라벨 판단 기준 아님 · Red Tag B·C 보조용)</span></div>
+          <div class="budget-ref-grid" id="budget-ref-grid"></div>
         </div>
 
         <!-- M-01: 수혜자/제공자 구분 체크리스트 (파일럿 IAA 피드백 반영, v1.5 간소화) -->
@@ -1332,6 +1357,9 @@ function renderRecord() {
     document.getElementById('plan-block').style.display = 'none';
   }
 
+  // S1-7: 예산현액·집행률 참고 정보 (읽기 전용 · Stage 분기 없음 — 앵커링 측정 오염 방지)
+  renderBudgetRef(r);
+
   // Stage 2에서만 AI Top-3 렌더 (파일럿은 Blind)
   const aiPanel = document.getElementById('ai-panel');
   if (!isPilot && stageNum === '2') {
@@ -1391,6 +1419,38 @@ function renderRecord() {
 
   // S1-3: 새 레코드 기준으로 dirty 기준선 리셋 (복원된 저장본 = 기준선, 이후 변경만 dirty)
   resetDirtyBaseline();
+}
+
+// S1-7: 예산현액·집행률 참고 정보 렌더 (읽기 전용 표시 — collectAnnotation·dirty 추적에 미포함)
+// 집행률 = 지출액 ÷ 예산현액. 예산현액 0/결측이면 나눗셈 대신 "—"(Infinity/NaN 금지).
+// 초과집행(>100%)은 사실대로 표시. Stage 분기 없음(1·2 동일) — 앵커링 측정 오염 방지.
+function renderBudgetRef(r) {
+  const grid = document.getElementById('budget-ref-grid');
+  if (!grid) return;
+  const won = v => Number(v).toLocaleString('ko-KR') + '원';
+  const budget = r['예산현액'];
+  const spent  = r['지출액'];
+  const hasBudget = typeof budget === 'number' && isFinite(budget);
+  const hasSpent  = typeof spent  === 'number' && isFinite(spent);
+
+  const cells = [];
+  cells.push(`<span class="budget-ref-item"><span class="budget-ref-k">예산현액</span><span class="budget-ref-v">${hasBudget ? won(budget) : '정보 없음'}</span></span>`);
+  cells.push(`<span class="budget-ref-item"><span class="budget-ref-k">지출액</span><span class="budget-ref-v">${hasSpent ? won(spent) : '정보 없음'}</span></span>`);
+
+  // 집행률: 예산현액 0원 또는 결측이면 산출불가("—"), 그 외 소수1자리 %. 초과집행은 사실대로.
+  let rateHtml, extraClass = '';
+  if (!hasBudget || !hasSpent) {
+    rateHtml = '정보 없음'; extraClass = ' is-na';
+  } else if (budget === 0) {
+    rateHtml = '— (산출불가)'; extraClass = ' is-na';
+  } else {
+    const rate = spent / budget * 100;
+    rateHtml = rate.toFixed(1) + '%';
+    if (rate > 100) { rateHtml += ' ⚠ 초과집행'; extraClass = ' is-over'; }
+  }
+  cells.push(`<span class="budget-ref-item${extraClass}"><span class="budget-ref-k">집행률</span><span class="budget-ref-v">${rateHtml}</span></span>`);
+
+  grid.innerHTML = cells.join('');
 }
 
 function renderAiTopK(id) {
