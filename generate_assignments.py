@@ -59,7 +59,9 @@ def pick_col(df: pd.DataFrame, candidates: list[str]) -> str | None:
 def stratified_sample(df: pd.DataFrame, n: int, strat_cols: list[str], seed: int) -> pd.DataFrame:
     """층화 표본 추출 (각 셀 비율대로 할당, 반올림 오차는 랜덤 보정)."""
     rng = random.Random(seed)
-    strat_key = df[strat_cols].astype(str).agg("|".join, axis=1)
+    # pandas 3.x 호환: NaN 컬럼(rare_class_flag 등)이 있으면 .astype(str) 후에도 float nan이
+    # 남아 "|".join 이 TypeError. fillna("nan")로 pandas 2.x .astype(str) 의미(NaN→'nan' 층) 복원.
+    strat_key = df[strat_cols].fillna("nan").astype(str).agg("|".join, axis=1)
     groups = df.groupby(strat_key)
     total = len(df)
 

@@ -135,10 +135,6 @@
     }
     .record-header .record-meta { font-size: 13px; opacity: .85; }
     .record-header .record-title { font-size: 16px; font-weight: 700; margin-top: 4px; }
-    .rare-badge {
-      background: var(--accent); color: white; padding: 3px 10px;
-      border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap;
-    }
     .record-body { padding: 20px; }
     .field-block {
       margin-bottom: 14px; border-radius: 8px; overflow: hidden;
@@ -632,7 +628,6 @@
             <div class="record-meta" id="record-meta">—</div>
             <div class="record-title" id="record-title">—</div>
           </div>
-          <span class="rare-badge" id="rare-badge" style="display:none">희소클래스</span>
         </div>
         <div class="record-body">
           <div class="field-block primary">
@@ -1301,15 +1296,6 @@ function renderRecord() {
   document.getElementById('record-meta').textContent =
     `#${currentIdx + 1} / ${records.length}   |   ID ${id}   |   ${year}년   ${muni}   ${type ? '[' + type + ']' : ''}`;
   document.getElementById('record-title').textContent = r['세부사업명'] || r.title || '(사업명 없음)';
-
-  const rareFlag = r['rare_class_flag'] ?? r.rare_flag ?? 'None';
-  const rareBadge = document.getElementById('rare-badge');
-  if (rareFlag && rareFlag !== 'None' && rareFlag !== 'none') {
-    rareBadge.textContent = `희소클래스: ${rareFlag}`;
-    rareBadge.style.display = 'inline-block';
-  } else {
-    rareBadge.style.display = 'none';
-  }
 
   const purpose = r['사업목적'] ?? r.purpose ?? '';
   const content = r['사업내용'] ?? r.content ?? '';
