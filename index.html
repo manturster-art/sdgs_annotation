@@ -1003,6 +1003,15 @@ const SDG_GUARD_RULES = {
   SDG9: {
     title: "⚠️ SDG9 (산업·혁신·인프라) vs SDG8 재검토",
     body: "SDG9는 <strong>산업·혁신·물리 인프라</strong> 중심입니다.<br><br>일자리·고용 창출이 주된 목적이면 <strong>SDG8</strong> 재검토."
+  },
+  SDG17: {
+    title: "⚠️ SDG17 (글로벌 파트너십) 확인",
+    body: "SDG17은 <strong>상대국·국제 파트너가 명시된</strong> 국제교류·자매도시·국제협력·ODA에 적합합니다.<br><br>순수 <strong>국내</strong> 문화·체육·행사라면 <strong>SDG11 / SDG4</strong> 재검토."
+  },
+  // v2.0 (3인 파일럿 근거): 국제교류 사업을 NA로 처리하는 오분류 방지 (역방향 가드)
+  NA_INTL: {
+    title: "🌏 국제교류 사업 — NA 재검토",
+    body: "이 사업에 <strong>자매도시·국제교류·국제협력</strong> 키워드가 있습니다.<br><br>상대국·국제 파트너가 명시되면 <strong>NA가 아니라 SDG17 (글로벌 파트너십)</strong>일 수 있습니다. (코딩북 §4-4·§4-8)<br><br>순수 국내 행사만 NA/기타로 판단하세요."
   }
 };
 
@@ -1584,6 +1593,12 @@ function selectSdg(sdg, aiRank) {
     // 사용자가 NA 버튼을 능동 클릭한 경우: 사유 박스만 노출, 사유 비움
     selNaReason = '';
     renderNaReasonBox();
+    // v2.0 (3인 파일럿 근거): 국제교류·자매도시 사업을 NA로 처리 시 SDG17 재검토 안내
+    const _r = records[currentIdx] || {};
+    const _txt = String((_r['사업목적'] ?? _r.purpose ?? '') + ' ' + (_r['세부사업명'] ?? _r.name_clean ?? '') + ' ' + (_r['사업내용'] ?? _r.content ?? ''));
+    if (/자매도시|자매결연|국제\s?교류|국제\s?협력|우호(도시|친선|교류)|ODA|국제\s?청소년|국제\s?문화|국제\s?스포츠|교류전/.test(_txt)) {
+      setTimeout(() => triggerSdgGuard('NA_INTL'), 400);
+    }
   } else {
     if (sdg) selP5 = SDG_TO_P5[sdg] || selP5;
     selNaReason = '';
