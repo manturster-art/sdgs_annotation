@@ -1206,6 +1206,17 @@ async function startSession() {
 
   isPilot = (stageNum === 'pilot');
   isDemo  = (stageNum === 'demo');
+
+  // D52 재발 방지 — B′ 파일럿 기간 A·C 슬롯 잠금 (2026-07-14, D59).
+  // A(박정진)·C(김지현) 파일럿 라벨은 확정분이라 덮어쓰기 차단. 해제하려면 배열을 비울 것.
+  const LOCKED_SLOTS = ['A', 'C'];
+  if (!isDemo && LOCKED_SLOTS.includes(annotatorName)) {
+    alert('🔒 슬롯 ' + annotatorName + '은(는) 현재 잠금 상태입니다.\n' +
+          '(기존 A·C 파일럿 라벨 보호 — B′ 파일럿 기간)\n' +
+          '본인 슬롯이 맞는지 관리자(박정진)에게 확인해 주세요.');
+    return;
+  }
+
   // 모드별 런타임 설정
   DB_PROJECT     = isPilot ? DB_PROJECT_PILOT     : DB_PROJECT_MAIN;
   STORAGE_PREFIX = isDemo  ? STORAGE_PREFIX_DEMO
