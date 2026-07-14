@@ -1275,7 +1275,13 @@ async function startSession() {
   // 로컬 저장 키 (모드별 네임스페이스)
   const stageTag = isDemo ? 'demo' : isPilot ? 'pilot' : ('s' + stageNum);
   const storageKey = STORAGE_PREFIX + annotatorName + '_' + stageTag;
-  const saved = localStorage.getItem(storageKey);
+  // D59 B′ 마이그레이션 가드(2026-07-14): B 파일럿은 구 B(추명구) 기기에 남은 stale
+  // localStorage가 초기 로드에 섞여 Firebase로 자동 재업로드(아래 §마이그레이션 블록)되며
+  // 삭제한 구 응답을 되살리는 사고가 실측됨. 이 세션 동안은 로컬 캐시를 무시하고 Firebase를
+  // 단일 진실 공급원으로 취급한다(저장 시 localStorage 기록은 그대로 유지되어 오프라인 복원력은 불변).
+  // 해제: 신규 B′ 파일럿 완료 후 이 if문 삭제.
+  const skipLocalCacheLoad = isPilot && annotatorName === 'B';
+  const saved = skipLocalCacheLoad ? null : localStorage.getItem(storageKey);
   annotations = saved ? JSON.parse(saved) : {};
 
   // Firebase 병합 (경로도 모드별)
