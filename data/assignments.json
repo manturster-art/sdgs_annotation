@@ -1,7 +1,7 @@
 {
   "annotators": {
     "A": {
-      "name": "코더 A",
+      "name": "코더 A (박정진)",
       "stage1_samples": [
         4,
         10,
@@ -1519,7 +1519,7 @@
       ]
     },
     "C": {
-      "name": "코더 C",
+      "name": "코더 C (김지현)",
       "stage1_samples": [
         4,
         10,

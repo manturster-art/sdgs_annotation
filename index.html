@@ -1207,13 +1207,33 @@ async function startSession() {
   isPilot = (stageNum === 'pilot');
   isDemo  = (stageNum === 'demo');
 
-  // D52 재발 방지 — B′ 파일럿 기간 A·C 슬롯 잠금 (2026-07-14, D59).
-  // A(박정진)·C(김지현) 파일럿 라벨은 확정분이라 덮어쓰기 차단. 해제하려면 배열을 비울 것.
-  const LOCKED_SLOTS = ['A', 'C'];
-  if (!isDemo && LOCKED_SLOTS.includes(annotatorName)) {
-    alert('🔒 슬롯 ' + annotatorName + '은(는) 현재 잠금 상태입니다.\n' +
+  // D52 재발 방지 — 파일럿 모드 한정 A·C 슬롯 잠금 (2026-07-17 개정, D59/D60).
+  // A(박정진)·C(김지현) 파일럿 라벨은 확정분이라 덮어쓰기 차단. Stage 1 진입은 허용(D60 병행 결정).
+  // 해제하려면 배열을 비울 것.
+  const PILOT_LOCKED_SLOTS = ['A', 'C'];
+  if (isPilot && PILOT_LOCKED_SLOTS.includes(annotatorName)) {
+    alert('🔒 파일럿 모드에서 슬롯 ' + annotatorName + '은(는) 잠금 상태입니다.\n' +
           '(기존 A·C 파일럿 라벨 보호 — B′ 파일럿 기간)\n' +
-          '본인 슬롯이 맞는지 관리자(박정진)에게 확인해 주세요.');
+          '본 라벨링은 Stage 1을 선택하세요. 문의: 관리자(박정진)');
+    return;
+  }
+
+  // S2-2 시작 게이트 (2026-07-17): AI 사전라벨(ai_prelabels.json) 미배치 상태에서
+  // Stage 2를 열면 무경고 Blind 격하가 발생하므로 배치 전까지 진입 자체를 차단한다.
+  // 해제: 사전라벨 생성·배치 후 이 블록 제거(정식 무결성 게이트로 교체 예정).
+  if (!isDemo && !isPilot && stageNum === '2') {
+    alert('⛔ Stage 2는 아직 열리지 않았습니다.\n' +
+          '(AI 사전라벨 배치 후 개방 예정 — 지금은 Stage 1만 진행)\n' +
+          '문의: 관리자(박정진)');
+    return;
+  }
+
+  // D60(2026-07-17): B 슬롯의 Stage 1은 B′ 신규 3인 IAA 게이트(κ≥0.41) 통과 후 개방.
+  // B′는 지금 파일럿만 진행한다. 해제: 게이트 통과 시 이 블록 제거.
+  if (!isDemo && !isPilot && annotatorName === 'B') {
+    alert('🔒 슬롯 B의 본 라벨링(Stage)은 아직 열리지 않았습니다.\n' +
+          '(파일럿 50건 + IAA 게이트 통과 후 개방 — 지금은 파일럿을 선택하세요)\n' +
+          '문의: 관리자(박정진)');
     return;
   }
 
@@ -1611,10 +1631,13 @@ function selectSdg(sdg, aiRank) {
     selNaReason = '';
     renderNaReasonBox();
     // v2.0 (3인 파일럿 근거): 국제교류·자매도시 사업을 NA로 처리 시 SDG17 재검토 안내
-    const _r = records[currentIdx] || {};
-    const _txt = String((_r['사업목적'] ?? _r.purpose ?? '') + ' ' + (_r['세부사업명'] ?? _r.name_clean ?? '') + ' ' + (_r['사업내용'] ?? _r.content ?? ''));
-    if (/자매도시|자매결연|국제\s?교류|국제\s?협력|우호(도시|친선|교류)|ODA|국제\s?청소년|국제\s?문화|국제\s?스포츠|교류전/.test(_txt)) {
-      setTimeout(() => triggerSdgGuard('NA_INTL'), 400);
+    // D60(2026-07-17): 파일럿 모드는 구 3인(2026-06) 조건 동결을 위해 이 v2.0 가드를 끈다 — Stage 전용.
+    if (!isPilot) {
+      const _r = records[currentIdx] || {};
+      const _txt = String((_r['사업목적'] ?? _r.purpose ?? '') + ' ' + (_r['세부사업명'] ?? _r.name_clean ?? '') + ' ' + (_r['사업내용'] ?? _r.content ?? ''));
+      if (/자매도시|자매결연|국제\s?교류|국제\s?협력|우호(도시|친선|교류)|ODA|국제\s?청소년|국제\s?문화|국제\s?스포츠|교류전/.test(_txt)) {
+        setTimeout(() => triggerSdgGuard('NA_INTL'), 400);
+      }
     }
   } else {
     if (sdg) selP5 = SDG_TO_P5[sdg] || selP5;
@@ -1630,7 +1653,9 @@ function selectSdg(sdg, aiRank) {
   renderAiTopK(recId());
   renderAdditional();
   // M-02: 혼동 빈발 SDG 선택 시 가드 토스트 표시 (400ms 지연)
-  if (sdg && SDG_GUARD_RULES[sdg]) {
+  // D60(2026-07-17): SDG17 가드는 v2.0 신규분 — 파일럿 모드는 구 3인 조건 동결을 위해 제외
+  // (구 파일럿 당시 존재했던 6종 SDG11/10/1/5/8/9는 파일럿에서도 유지).
+  if (sdg && SDG_GUARD_RULES[sdg] && !(isPilot && sdg === 'SDG17')) {
     setTimeout(() => triggerSdgGuard(sdg), 400);
   }
 }

@@ -1,18 +1,32 @@
 {
-  "_comment": "Firebase RTDB 규칙 — B′ 파일럿 기간 A·C 슬롯 잠금 (임시, 2026-07-14). 인증 불요(현행 무인증 클라이언트와 호환) — S1-4 강화(firebase_rules_hardened_draft.json, 익명인증 필요)와는 별개의 중간 단계.",
-  "_purpose": "D52(C가 A 슬롯 덮어씀) 재발 방지. A(박정진)·C(김지현) 파일럿 라벨은 확정분이므로 DB 레벨에서 쓰기 차단. B 슬롯만 쓰기 허용(B′ 재라벨용, 체크리스트 §2 'B 슬롯 재사용'). 본 라벨링(sdg_main_2026)은 미시작이므로 전체 쓰기 차단.",
+  "_comment": "Firebase RTDB 규칙 — B′ 파일럿 + A·C Stage 1 병행 체제 (2026-07-17 개정, D60). 인증 불요(현행 무인증 클라이언트와 호환) — S1-4 강화(firebase_rules_hardened_draft.json, 익명인증 필요)와는 별개의 중간 단계.",
+  "_purpose": "D52(C가 A 슬롯 덮어씀) 재발 방지 + D60 병행 결정 반영. (1) pilot: B 슬롯만 쓰기 허용(B′ 재라벨), A(박정진)·C(김지현) 확정 라벨 보호. (2) stage1: A·C만 쓰기 허용(본 라벨링 병행 진입), B는 신규 IAA 게이트 통과 후 개방(규칙 재게시). (3) stage2: 사전라벨 미배치 — 전면 잠금.",
   "_howto": "Firebase Console > Realtime Database > Rules 탭에 아래 'rules' 객체만 붙여넣기 → 게시. 게시 전 현행 규칙을 복사해 보관할 것(원복용).",
-  "_unlock": "본 라벨링 진입 시 이 규칙을 firebase_rules_hardened_draft.json(S1-4, 익명인증 선행 필요)으로 교체하거나, sdg_main_2026 쓰기를 재개방.",
-  "_client_pair": "index.html에도 동일 취지의 UI 잠금(LOCKED_SLOTS=['A','C'], startSession 초입) 적용됨(2026-07-14). UI 잠금은 실수 방지, 본 규칙은 DB 레벨 강제 — 이중 방어.",
+  "_unlock": "B′ 신규 3인 IAA 게이트 통과 시 stage1 쓰기를 A·B·C로 확대 재게시. Stage 2 개방 시 stage2 규칙 추가. 이후 S1-4 강화(익명인증) 규칙으로 승격 예정.",
+  "_client_pair": "index.html 측 동일 취지 가드(2026-07-17): 파일럿 모드 A·C 잠금(PILOT_LOCKED_SLOTS) + Stage 2 시작 차단(S2-2 간이 게이트) + M-02 SDG17 가드 파일럿 제외(조건 동결). UI 가드는 실수 방지, 본 규칙은 DB 레벨 강제 — 이중 방어.",
 
   "rules": {
     ".read": false,
     ".write": false,
 
     "sdg_main_2026": {
-      "_comment_main": "본 라벨링 미시작 — 전체 쓰기 잠금(읽기는 허용 유지)",
       ".read": true,
-      ".write": false
+      ".indexOn": ["timestamp"],
+      "$stage": {
+        ".validate": "$stage === 'stage1' || $stage === 'stage2'",
+        "$annotator": {
+          ".write": "$stage === 'stage1' && ($annotator === 'A' || $annotator === 'C')",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
+            "annotator":  { ".validate": "newData.val() === $annotator" },
+            "stage":      { ".validate": "newData.isString() || newData.isNumber()" },
+            "sample_id":  { ".validate": "newData.isString() || newData.isNumber()" },
+            "tier":       { ".validate": "newData.isString()" },
+            "timestamp":  { ".validate": "newData.isString()" },
+            "$other":     { ".validate": true }
+          }
+        }
+      }
     },
 
     "sdg_pilot_v2_2026": {
