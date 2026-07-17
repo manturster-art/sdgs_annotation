@@ -6,6 +6,7 @@
   <title>SDGs 예산 어노테이션 도구 v2</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -1057,7 +1058,7 @@ let guardShownThisRecord = new Set();
 // ══════════════════════════════════════════
 //  FIREBASE
 // ══════════════════════════════════════════
-function initFirebase() {
+async function initFirebase() {
   const cfg = {
     apiKey:      document.getElementById('fb-apiKey').value.trim()      || FIREBASE_CONFIG.apiKey,
     authDomain:  document.getElementById('fb-authDomain').value.trim()  || FIREBASE_CONFIG.authDomain,
@@ -1067,6 +1068,14 @@ function initFirebase() {
   if (!cfg.apiKey || !cfg.databaseURL) return null;
   try {
     const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
+    // S1-4(2026-07-17): 익명 인증 — 강화 규칙(auth != null)의 선행 조건.
+    // 코더는 아무것도 입력하지 않는다(백그라운드 자동 로그인). 실패 시 로컬 전용 강등(현행 UX 동일).
+    try {
+      if (!firebase.auth().currentUser) await firebase.auth().signInAnonymously();
+    } catch (e) {
+      console.warn('익명 인증 실패:', e.message);
+      return null;
+    }
     return firebase.database(app);
   } catch (e) {
     console.warn('Firebase 초기화 실패:', e.message);
@@ -1247,7 +1256,7 @@ async function startSession() {
   btn.textContent = '⏳ 연결 중...';
 
   // 데모는 Firebase 미연결 (로컬 전용) — 실제 데이터에 절대 흔적 남기지 않음
-  db = isDemo ? null : initFirebase();
+  db = isDemo ? null : await initFirebase();
 
   // 모드별 할당 맵·ID 추출
   const map = isDemo ? demoAssignmentMap : isPilot ? pilotAssignmentMap : assignmentMap;
