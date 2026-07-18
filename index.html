@@ -1016,6 +1016,22 @@ const SDG_GUARD_RULES = {
   }
 };
 
+// D63(2026-07-19, 사용자 결정): Stage 모드 전용 중립화 가드 — 실시간 토스트가 대안 SDG를
+// 지목하면 코더 판단에 방향성 개입이 생기므로(파일럿 실측: 답 변경 8/150),
+// Stage 1·2에서는 정답 지목 없이 "코딩북 해당 절 확인" 리마인더만 띄운다.
+// 파일럿 모드는 구 3인(2026-06) 조건 동결을 위해 위 SDG_GUARD_RULES 원문을 유지(D61).
+// 트리거 조건·kept/rechosen 로깅은 동일 — 문구만 중립.
+const SDG_GUARD_RULES_NEUTRAL = {
+  SDG11: { title: "🔎 SDG11 선택 확인", body: "혼동이 잦은 목표입니다.<br><br>코딩북 <strong>§4-8 (SDG 혼동 가드 대조표)</strong>의 SDG11 행을 확인하셨나요?" },
+  SDG10: { title: "🔎 SDG10 선택 확인", body: "혼동이 잦은 목표입니다.<br><br>코딩북 <strong>§4-8 (SDG 혼동 가드 대조표)</strong>의 SDG10 행을 확인하셨나요?" },
+  SDG1:  { title: "🔎 SDG1 선택 확인",  body: "혼동이 잦은 목표입니다.<br><br>코딩북 <strong>§4-8 (SDG 혼동 가드 대조표)</strong>의 SDG1 행을 확인하셨나요?" },
+  SDG5:  { title: "🔎 SDG5 선택 확인",  body: "혼동이 잦은 목표입니다.<br><br>코딩북 <strong>§4-8 (SDG 혼동 가드 대조표)</strong>의 SDG5 행을 확인하셨나요?" },
+  SDG8:  { title: "🔎 SDG8 선택 확인",  body: "혼동이 잦은 목표입니다.<br><br>코딩북 <strong>§4-8 (SDG 혼동 가드 대조표)</strong>의 SDG8 행을 확인하셨나요?" },
+  SDG9:  { title: "🔎 SDG9 선택 확인",  body: "혼동이 잦은 목표입니다.<br><br>코딩북 <strong>§4-8 (SDG 혼동 가드 대조표)</strong>의 SDG9 행을 확인하셨나요?" },
+  SDG17: { title: "🔎 SDG17 선택 확인", body: "혼동이 잦은 목표입니다.<br><br>코딩북 <strong>§4-8 (SDG 혼동 가드 대조표)</strong>의 SDG17 행을 확인하셨나요?" },
+  NA_INTL: { title: "🔎 NA 선택 확인", body: "이 사업에는 <strong>국제교류·자매도시</strong> 관련 키워드가 있습니다.<br><br>코딩북 <strong>§4-4 (국제교류)</strong>를 확인하셨나요?" }
+};
+
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
@@ -1789,11 +1805,13 @@ function restoreBeneficiaryUI(saved) {
 //  M-02 SDG 혼동 방지 가드
 // ══════════════════════════════════════════
 function triggerSdgGuard(sdg) {
-  if (!sdg || !SDG_GUARD_RULES[sdg]) return;
+  // D63(2026-07-19): Stage 모드는 중립화 문구(정답 지목 없음), 파일럿은 구 3인 조건 동결 원문(D61)
+  const rules = isPilot ? SDG_GUARD_RULES : SDG_GUARD_RULES_NEUTRAL;
+  if (!sdg || !rules[sdg]) return;
   if (guardShownThisRecord.has(sdg)) return; // 동일 레코드에서 1회만
   guardShownThisRecord.add(sdg);
 
-  const rule = SDG_GUARD_RULES[sdg];
+  const rule = rules[sdg];
   const toast = document.getElementById('sdg-guard-toast');
   document.getElementById('guard-head').innerHTML = rule.title;
   document.getElementById('guard-body').innerHTML = rule.body;
