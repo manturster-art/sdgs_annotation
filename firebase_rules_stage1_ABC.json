@@ -1,22 +1,25 @@
 {
-  "_comment": "Firebase RTDB 규칙 — 3인 Stage 1 전면 개방 (D91, 2026-08-10 준비 / 게시는 3차 3인 IAA 게이트 통과 후). firebase_rules_pilot_lock_AC.json(D61)의 후속본이며 구본은 원복용으로 불변 보존한다. 인증 불요(현행 무인증 클라이언트와 호환) — S1-4 강화(firebase_rules_hardened_draft.json, 익명인증)와는 별개의 중간 단계.",
-  "_purpose": "D61 대비 변경점은 단 한 줄 — sdg_main_2026 의 stage1 쓰기 조건을 (A||C) 에서 (A||B||C) 로 확대해 B 슬롯의 Stage 1 진입을 연다. 나머지는 D61본과 동일: (1) pilot 은 B 슬롯만 쓰기 허용해 A·C 확정 라벨 보호(D52 재발 방지) (2) stage2 는 사전라벨 미배치로 전면 잠금 유지.",
+  "_comment": "Firebase RTDB 규칙 — 3인 Stage 1 전면 개방 (D91, 2026-08-10 준비 / 게시는 3차 3인 IAA 게이트 통과 후). 베이스는 firebase_rules_FINAL_paste.json(S1-4 '익명 인증 + 슬롯잠금 병합', 커밋 4ae4f7d)이며 구본들은 원복용으로 불변 보존한다.",
+  "_base_evidence": "2026-08-10 REST 읽기가 401 Permission denied → 게시본의 .read 가 무인증 true 가 아님이 실측됐다. 따라서 D61 초안(firebase_rules_pilot_lock_AC.json, .read: true)은 게시본이 아니며, auth != null 계열이 게시돼 있다. 그중 stage1 쓰기에 A·C 슬롯 잠금이 함께 있는 것은 FINAL_paste 뿐이라 이를 베이스로 삼았다.",
+  "_purpose": "게시본 대비 변경점은 단 한 줄 — sdg_main_2026 의 stage1 쓰기 조건에 $annotator === 'B' 를 추가해 B 슬롯의 Stage 1 진입을 연다. 나머지는 전부 동일: (1) 모든 읽기·쓰기에 auth != null 유지 (2) pilot 은 B 슬롯만 쓰기 허용해 A·C 확정 라벨 보호(D52 재발 방지) (3) stage2 는 사전라벨 미배치로 전면 잠금 유지.",
+  "_verify_before_paste": "★ 붙여넣기 전 Console 현행 규칙과 대조할 것. sdg_pilot_v2_2026 의 '.read' 가 \"auth != null\" 이고 stage1 '.write' 가 \"auth != null && $stage === 'stage1' && ($annotator === 'A' || $annotator === 'C')\" 이면 베이스 추정이 맞다. 만약 현행이 auth 없는 판본이면 아래 세 곳의 'auth != null && ' 를 제거하고 '.read' 를 true 로 바꿔 쓸 것(그 경우 보안이 낮은 상태이므로 별도 판단 필요).",
   "_precondition": "★ 게시 전 반드시 확인 — 3차 3인 IAA(A·B″·C) Fleiss κ ≥ 0.41 통과. 게이트 전에 게시하면 B″가 파일럿을 건너뛰고 Stage 1에 들어가 캘리브레이션 라운드가 무의미해진다(D60 원칙).",
-  "_howto": "Firebase Console > Realtime Database > Rules 탭에 아래 'rules' 객체만 붙여넣기 → 게시. 게시 전 현행 규칙을 복사해 보관할 것(원복용). 게시 직후 B″가 저장한 첫 1~2건이 sdg_main_2026/stage1/B 아래에 들어가는지 콘솔에서 확인(D52 오입력 조기 감지).",
+  "_howto": "Firebase Console > Realtime Database > 규칙(Rules) 탭 > 편집기 전체를 아래 'rules' 객체로 교체 > 게시. 게시 전 현행 규칙 전문을 복사해 보관할 것(원복용). 게시 직후 B″가 저장한 첫 1~2건이 sdg_main_2026/stage1/B 아래에 들어가는지 확인(D52 오입력 조기 감지).",
   "_client_pair": "index.html 측 짝 — D91에서 B 슬롯 Stage 차단 블록 제거(구 1257~1264행). 파일럿 모드 A·C 잠금(PILOT_LOCKED_SLOTS)과 Stage 2 시작 차단(S2-2 게이트)은 그대로 유지. UI 가드는 실수 방지, 본 규칙은 DB 레벨 강제 — 이중 방어이므로 둘을 함께 반영해야 한다(한쪽만 하면 화면 또는 저장 중 하나가 막힌다).",
-  "_next": "Stage 2 개방 시 stage2 쓰기 규칙 추가(D70 표적검수·랜덤감사). 이후 S1-4 강화(익명인증) 규칙으로 승격 예정.",
+  "_next": "Stage 2 개방 시 stage2 쓰기 규칙 추가(D70 표적검수·랜덤감사).",
 
   "rules": {
     ".read": false,
     ".write": false,
 
     "sdg_main_2026": {
-      ".read": true,
+      ".read": "auth != null",
       ".indexOn": ["timestamp"],
       "$stage": {
         ".validate": "$stage === 'stage1' || $stage === 'stage2'",
         "$annotator": {
-          ".write": "$stage === 'stage1' && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
+          ".read": "auth != null",
+          ".write": "auth != null && $stage === 'stage1' && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
           "$sample_id": {
             ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
             "annotator":  { ".validate": "newData.val() === $annotator" },
@@ -31,12 +34,13 @@
     },
 
     "sdg_pilot_v2_2026": {
-      ".read": true,
+      ".read": "auth != null",
       ".indexOn": ["timestamp"],
       "$stage": {
         ".validate": "$stage === 'pilot'",
         "$annotator": {
-          ".write": "$annotator === 'B'",
+          ".read": "auth != null",
+          ".write": "auth != null && $annotator === 'B'",
           "$sample_id": {
             ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'tier', 'timestamp'])",
             "annotator":  { ".validate": "newData.val() === $annotator" },
@@ -50,12 +54,12 @@
     },
 
     "_legacy_v1": {
-      ".read": true,
+      ".read": "auth != null",
       ".write": false
     },
 
     "_legacy_v1_pilot_20260424": {
-      ".read": true,
+      ".read": "auth != null",
       ".write": false
     }
   }
