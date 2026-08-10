@@ -1238,7 +1238,7 @@ async function startSession() {
   const PILOT_LOCKED_SLOTS = ['A', 'C'];
   if (isPilot && PILOT_LOCKED_SLOTS.includes(annotatorName)) {
     alert('🔒 파일럿 모드에서 슬롯 ' + annotatorName + '은(는) 잠금 상태입니다.\n' +
-          '(기존 A·C 파일럿 라벨 보호 — B′ 파일럿 기간)\n' +
+          '(기존 A·C 파일럿 라벨 보호 — B″ 파일럿 기간, D91)\n' +
           '본 라벨링은 Stage 1을 선택하세요. 문의: 관리자(박정진)');
     return;
   }
@@ -1253,14 +1253,9 @@ async function startSession() {
     return;
   }
 
-  // D61(2026-07-17): B 슬롯의 Stage 1은 B′ 신규 3인 IAA 게이트(κ≥0.41) 통과 후 개방.
-  // B′는 지금 파일럿만 진행한다. 해제: 게이트 통과 시 이 블록 제거.
-  if (!isDemo && !isPilot && annotatorName === 'B') {
-    alert('🔒 슬롯 B의 본 라벨링(Stage)은 아직 열리지 않았습니다.\n' +
-          '(파일럿 50건 + IAA 게이트 통과 후 개방 — 지금은 파일럿을 선택하세요)\n' +
-          '문의: 관리자(박정진)');
-    return;
-  }
+  // D61(2026-07-17) B 슬롯 Stage 차단 → **해제됨** (D91, B″ 3차 3인 IAA κ≥0.41 게이트 통과 후).
+  // 차단 블록은 여기 있었다. DB 레벨 짝은 firebase_rules_stage1_ABC.json(stage1 쓰기 A·B·C) 게시.
+  // 재차단이 필요하면 git history(prep/d91-b-slot-stage1-open 직전 커밋)에서 블록을 복원할 것.
 
   // 모드별 런타임 설정
   DB_PROJECT     = isPilot ? DB_PROJECT_PILOT     : DB_PROJECT_MAIN;
