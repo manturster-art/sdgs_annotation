@@ -1179,9 +1179,18 @@ async function loadBootstrap() {
   });
 }
 
+// 입력 이름의 SHA-256 hex — 슬롯 자동 매칭 대조용 (D91, 2026-08-11)
+// 본 저장소는 공개이므로 assignments.json 에 실명을 두지 않고 해시만 둔다.
+// 정규화: NFC + trim + 내부 공백 제거 (성/이름 사이 띄어쓰기 허용)
+async function sha256Hex(text) {
+  const norm = text.normalize('NFC').trim().replace(/\s+/g, '');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(norm));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // 본인 이름으로부터 할당 슬롯(A/B/C) 자동 매칭
-// assignments.json / pilot_assignments.json의 annotators[X].name 에서 이름을 찾음
-function autoMatchSlot() {
+// 우선 annotators[X].name_sha256 과 대조하고, 없으면 구 방식(name 부분일치)으로 폴백한다.
+async function autoMatchSlot() {
   const fullName = document.getElementById('annotator-full-name').value.trim();
   const noteEl = document.getElementById('slot-auto-note');
   const slotSel = document.getElementById('annotator-name');
@@ -1198,12 +1207,23 @@ function autoMatchSlot() {
   const map = (stg === 'pilot') ? pilotAssignmentMap : assignmentMap;
   if (!map || !map.annotators) { noteEl.textContent = ''; return; }
 
+  // crypto.subtle 은 보안 컨텍스트(https/localhost)에서만 제공된다. 없으면 구 방식만 쓴다.
+  let digest = null;
+  if (window.crypto && crypto.subtle) {
+    try { digest = await sha256Hex(fullName); } catch (e) { digest = null; }
+  }
+
   let matched = null;
   for (const [slot, info] of Object.entries(map.annotators)) {
+    if (digest && info.name_sha256 && info.name_sha256.toLowerCase() === digest) { matched = slot; break; }
+    // 폴백 — name 에 실명이 남아 있는 구 배정 파일 호환 ("코더 A (박정진)" 부분일치)
     const nm = (info.name || '').trim();
-    // "코더 A (박정진)" 패턴에서 이름 매칭
-    if (nm && nm.includes(fullName)) { matched = slot; break; }
+    if (!info.name_sha256 && nm && nm.includes(fullName)) { matched = slot; break; }
   }
+
+  // 비동기 처리 중 사용자가 입력을 더 쳤으면 결과를 버린다 (경합 방지)
+  if (document.getElementById('annotator-full-name').value.trim() !== fullName) return;
+
   if (matched) {
     slotSel.value = matched;
     noteEl.textContent = `→ 자동 매칭: 슬롯 ${matched}`;
@@ -1212,6 +1232,7 @@ function autoMatchSlot() {
     noteEl.textContent = '→ 매칭 없음 (수동 선택하세요)';
     noteEl.style.color = 'var(--accent)';
   }
+  checkCanStart();
 }
 
 function checkCanStart() {
