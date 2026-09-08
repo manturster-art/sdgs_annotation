@@ -602,6 +602,7 @@
       <option value="demo">🎓 데모 (지도교수 시연용) — 로컬 전용·데이터 격리, 8건</option>
       <option value="pilot">🧪 파일럿 (50건) — v1 비교용 재라벨링</option>
       <option value="1">Stage 1 — Blind (AI 숨김, 300건)</option>
+      <option value="1r">Stage 1-R — v2.1 재라벨 (Blind, 67건)</option>
       <option value="2">Stage 2 — 검수 (AI Top-3 노출, 300~330건)</option>
     </select>
 
@@ -1113,7 +1114,7 @@ function setSyncStatus(state, label) {
 // GitHub Pages 는 data/*.json 을 브라우저·CDN 캐시에 남기므로, 배정 파일을 갱신해도
 // 기존 접속자가 구본을 계속 쓴다(슬롯 자동매칭 해시 전환 때 실측됨). 배포 시각을 쿼리로
 // 붙이고 no-store 를 지정해 항상 최신본을 받는다. 값은 배포할 때마다 갱신할 것.
-const DATA_VERSION = '20260811-1';
+const DATA_VERSION = '20260908-1';
 const NO_CACHE = { cache: 'no-store' };
 const dataUrl = (path) => path + '?v=' + DATA_VERSION;
 
@@ -1308,13 +1309,15 @@ async function startSession() {
   if (isDemo)                     ids = slot.demo_samples   || [];
   else if (isPilot)               ids = slot.pilot_samples  || [];
   else if (stageNum === '1')      ids = slot.stage1_samples || [];
+  else if (stageNum === '1r')     ids = slot.stage1r_samples || [];   // D96 재라벨 라운드
   else                             ids = slot.stage2_samples || [];
 
   // S1-8: 슬롯 오선택 방지 — 시작 직전 슬롯·모드·건수를 요약해 명시적 확인을 받는다.
   // (데모는 로컬 전용 시연이라 확인 생략) 취소 시 시작 버튼을 원상 복구한다.
   if (!isDemo) {
     const modeLabel = isPilot ? '파일럿'
-                    : (stageNum === '1' ? 'Stage 1' : 'Stage 2');
+                    : (stageNum === '1' ? 'Stage 1'
+                    : stageNum === '1r' ? 'Stage 1-R · v2.1 재라벨' : 'Stage 2');
     const ok = confirm(
       `슬롯 ${annotatorName} · ${modeLabel} · ${ids.length}건으로 시작합니다.\n` +
       `코더: ${annotatorFullName}\n\n본인에게 배정된 슬롯이 맞습니까?`
@@ -1416,7 +1419,8 @@ async function startSession() {
     sb.textContent = '🧪 파일럿 · 50건';
     sb.className = 'stage-badge s-pilot';
   } else {
-    sb.textContent = 'Stage ' + stageNum + (stageNum === '1' ? ' · Blind' : ' · 검수');
+    sb.textContent = stageNum === '1r' ? 'Stage 1-R · v2.1 재라벨 · Blind'
+                 : 'Stage ' + stageNum + (stageNum === '1' ? ' · Blind' : ' · 검수');
     sb.className = 'stage-badge s' + stageNum;
   }
 

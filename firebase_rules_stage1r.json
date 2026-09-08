@@ -1,0 +1,66 @@
+{
+  "_comment": "Firebase RTDB 규칙 — Stage 1-R(v2.1 재라벨 라운드) 개방 (D96, 2026-09-08 준비 / 게시는 코딩북 v2.1 배포와 동시). 베이스는 현행 게시본 firebase_rules_stage1_ABC.json(D91, stage1 쓰기 A·B·C)이며 구본은 원복용으로 불변 보존한다.",
+  "_purpose": "게시본 대비 변경점은 두 곳 — (1) $stage 검증에 'stage1r' 추가 (2) 쓰기 조건을 stage1 단독에서 (stage1 또는 stage1r)로 확대. 나머지는 전부 동일: 모든 읽기·쓰기에 auth != null 유지, pilot 은 B 슬롯만 쓰기 허용(A·C 확정 라벨 보호, D52), stage2 는 사전라벨 미배치로 전면 잠금.",
+  "_why_separate_node": "기존 Stage 1 응답을 덮어쓰지 않고 stage1r 노드에 따로 받는다. v2.0 판정과 v2.1 판정을 나란히 놓아야 코딩북 개정의 효과(해소율)를 측정할 수 있기 때문이다. 라이브 데이터가 두 판본으로 섞이면 이후 집계·중재에서 계속 혼선이 생긴다.",
+  "_precondition": "★ 게시 전 확인 — 코딩북 v2.1 + 변경 요약본이 3인에게 전달됐는가. 규칙만 먼저 열면 어노테이터가 구 기준(v2.0)으로 재라벨할 수 있고, 그러면 개정 효과 측정이 무의미해진다.",
+  "_verify_before_paste": "★ 붙여넣기 전 Console 현행 규칙과 대조할 것. sdg_pilot_v2_2026 의 '.read' 가 \"auth != null\" 이고 stage1 '.write' 가 \"auth != null && $stage === 'stage1' && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')\" 이면 베이스가 맞다. 만약 현행이 auth 없는 판본이면 'auth != null && ' 를 제거하고 '.read' 를 true 로 바꿔 쓸 것(그 경우 보안이 낮은 상태이므로 별도 판단 필요).",
+  "_howto": "Firebase Console > Realtime Database > 규칙(Rules) 탭 > 편집기 전체를 아래 'rules' 객체로 교체 > 게시. 게시 전 현행 규칙 전문을 복사해 보관할 것(원복용). 게시 직후 재라벨 첫 1~2건이 sdg_main_2026/stage1r/{슬롯} 아래에 들어가는지 확인(D52 오입력 조기 감지).",
+  "_client_pair": "index.html 측 짝 — 모드 옵션 value='1r' 추가, 배정 분기 stage1r_samples, 라벨 2곳, DATA_VERSION 인상(배정 파일 갱신 시 필수 — 2026-08-11 캐시 사고). Firebase 경로는 fbStageKey='stage'+stageNum 로 자동으로 stage1r 이 되고, localStorage 키도 _s1r 로 분리되어 이전 응답이 섞이지 않는다. AI 사전라벨 분기는 모두 stageNum==='2' 조건이라 1r 에서는 blind 가 자동 유지된다.",
+  "_next": "재라벨 수거·효과 측정 후 Stage 2 개방 시 stage2 쓰기 규칙 추가(D70). 이후 S1-4 강화(익명인증) 규칙으로 승격 예정.",
+
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "sdg_main_2026": {
+      ".read": "auth != null",
+      ".indexOn": ["timestamp"],
+      "$stage": {
+        ".validate": "$stage === 'stage1' || $stage === 'stage1r' || $stage === 'stage2'",
+        "$annotator": {
+          ".read": "auth != null",
+          ".write": "auth != null && ($stage === 'stage1' || $stage === 'stage1r') && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
+            "annotator":  { ".validate": "newData.val() === $annotator" },
+            "stage":      { ".validate": "newData.isString() || newData.isNumber()" },
+            "sample_id":  { ".validate": "newData.isString() || newData.isNumber()" },
+            "tier":       { ".validate": "newData.isString()" },
+            "timestamp":  { ".validate": "newData.isString()" },
+            "$other":     { ".validate": true }
+          }
+        }
+      }
+    },
+
+    "sdg_pilot_v2_2026": {
+      ".read": "auth != null",
+      ".indexOn": ["timestamp"],
+      "$stage": {
+        ".validate": "$stage === 'pilot'",
+        "$annotator": {
+          ".read": "auth != null",
+          ".write": "auth != null && $annotator === 'B'",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'tier', 'timestamp'])",
+            "annotator":  { ".validate": "newData.val() === $annotator" },
+            "sample_id":  { ".validate": "newData.isString() || newData.isNumber()" },
+            "tier":       { ".validate": "newData.isString()" },
+            "timestamp":  { ".validate": "newData.isString()" },
+            "$other":     { ".validate": true }
+          }
+        }
+      }
+    },
+
+    "_legacy_v1": {
+      ".read": "auth != null",
+      ".write": false
+    },
+
+    "_legacy_v1_pilot_20260424": {
+      ".read": "auth != null",
+      ".write": false
+    }
+  }
+}
