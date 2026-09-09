@@ -1,0 +1,79 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "sdg_main_2026": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "timestamp"
+      ],
+      "$stage": {
+        ".validate": "$stage === 'stage1' || $stage === 'stage1r' || $stage === 'stage2'",
+        "$annotator": {
+          ".read": "auth != null",
+          ".write": "auth != null && ($stage === 'stage1' || $stage === 'stage1r') && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
+            "annotator": {
+              ".validate": "newData.val() === $annotator"
+            },
+            "stage": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "sample_id": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "tier": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": true
+            }
+          }
+        }
+      }
+    },
+    "sdg_pilot_v2_2026": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "timestamp"
+      ],
+      "$stage": {
+        ".validate": "$stage === 'pilot'",
+        "$annotator": {
+          ".read": "auth != null",
+          ".write": "auth != null && $annotator === 'B'",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'tier', 'timestamp'])",
+            "annotator": {
+              ".validate": "newData.val() === $annotator"
+            },
+            "sample_id": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "tier": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": true
+            }
+          }
+        }
+      }
+    },
+    "_legacy_v1": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "_legacy_v1_pilot_20260424": {
+      ".read": "auth != null",
+      ".write": false
+    }
+  }
+}

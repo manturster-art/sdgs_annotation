@@ -36,9 +36,10 @@ const SNAPSHOT_FOLDER_NAME   = 'snapshots';
 
 // 동기화 대상 경로
 const SYNC_PATHS = {
-  'pilot':  'sdg_pilot_v2_2026',
-  'stage1': 'sdg_main_2026/stage1',
-  'stage2': 'sdg_main_2026/stage2',
+  'pilot':   'sdg_pilot_v2_2026',
+  'stage1':  'sdg_main_2026/stage1',
+  'stage1r': 'sdg_main_2026/stage1r',   // D96 재라벨 라운드 (2026-09-09 추가)
+  'stage2':  'sdg_main_2026/stage2',
 };
 
 // 급감 가드: 직전 대비 이 비율 미만으로 줄면 latest 보류 (0.5 = 50%)
