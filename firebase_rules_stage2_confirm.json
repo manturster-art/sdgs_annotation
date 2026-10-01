@@ -1,6 +1,6 @@
 {
   "_comment": "Firebase RTDB 규칙: Stage 2 확인 표본(blind 90건) 개방 (D109, 2026-10-01 준비 / 게시는 코딩북 v2.2 + 변경 요약본이 3인에게 전달된 뒤, 박사님 승인 후). 베이스는 firebase_rules_stage1r_PASTE.json(D96)이며 구본은 원복용으로 불변 보존한다.",
-  "_purpose": "베이스 대비 변경점은 한 곳: sdg_main_2026 쓰기 조건에 $stage === 'stage2' 추가. 나머지(auth != null, pilot B 슬롯만 쓰기, stage1·stage1r 쓰기 조건, 필수 필드 검증, $other 허용)는 전부 동일.",
+  "_purpose": "베이스 대비 변경점: sdg_main_2026 쓰기를 stage2 로만 허용(stage1·stage1r 쓰기는 닫음, 2026-10-01 박사님 결정 D110 후속. 두 단계 완료로 기존 기록 덮어쓰기 방지). 나머지(auth != null, pilot B 슬롯만 쓰기, 필수 필드 검증, $other 허용)는 전부 동일.",
   "_why_same_node": "확인 표본은 stage1r 처럼 별도 노드를 만들지 않고 stage2 노드에 Stage 1과 같은 키 구조(stage2/{슬롯}/{sample_id})로 받는다. 레코드의 blindConfirm·aiShown·codebookVersion 필드로 blind 여부를 구분한다. 분석 스크립트(stage2_confirmation_effect.py)가 가정한 sdg_stage2_latest.json 구조와 같아 로더를 고치지 않는다.",
   "_precondition": "게시 전 확인: (1) 코딩북 v2.2 동결·3인 전달 (2) index.html 의 STAGE2_CODEBOOK_VERSION='2.2', STAGE2_CONFIRM_OPEN=true 가 main 에 반영 (3) STAGE2_AI_OPEN 은 false 유지. 규칙만 먼저 열어도 화면 게이트가 닫혀 있으면 쓰기는 일어나지 않는다.",
   "_client_pair": "index.html: STAGE2_* 플래그 3종, stage2Phase 게이트(본인 90건 blindConfirm 완료 + STAGE2_AI_OPEN + ai_prelabels.json 배치 전에는 90건만 연다), 90건은 AI 개방 뒤에도 blind 렌더, NA + RT-A·B·C 차단(판본 v2.2 이상 모드).",
@@ -17,7 +17,7 @@
         ".validate": "$stage === 'stage1' || $stage === 'stage1r' || $stage === 'stage2'",
         "$annotator": {
           ".read": "auth != null",
-          ".write": "auth != null && ($stage === 'stage1' || $stage === 'stage1r' || $stage === 'stage2') && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
+          ".write": "auth != null && $stage === 'stage2' && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
           "$sample_id": {
             ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
             "annotator": {

@@ -11,7 +11,7 @@
         ".validate": "$stage === 'stage1' || $stage === 'stage1r' || $stage === 'stage2'",
         "$annotator": {
           ".read": "auth != null",
-          ".write": "auth != null && ($stage === 'stage1' || $stage === 'stage1r' || $stage === 'stage2') && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
+          ".write": "auth != null && $stage === 'stage2' && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
           "$sample_id": {
             ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
             "annotator": {
