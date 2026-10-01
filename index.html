@@ -288,6 +288,9 @@
     .redtag-option:hover { border-color: var(--accent); background: #FFF5F0; }
     .redtag-option.selected { border-color: var(--accent); background: #FFF0E8; }
     .redtag-option.selected-none { border-color: var(--green); background: #ECFDF5; }
+    /* v2.2(D108 ①): 주목표 NA일 때 RT-A·B·C 비활성 표시 */
+    .redtag-option.disabled { opacity: .35; cursor: not-allowed; }
+    .redtag-option.disabled:hover { border-color: var(--border); background: inherit; }
     .redtag-option .rt-code { font-size: 12px; font-weight: 700; color: var(--accent); }
     .redtag-option .rt-none-code { font-size: 12px; font-weight: 700; color: var(--green); }
     .redtag-option .rt-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
@@ -927,6 +930,29 @@ const STORAGE_PREFIX_DEMO  = 'sdg_demo_v2_';
 let DB_PROJECT     = DB_PROJECT_MAIN;
 let STORAGE_PREFIX = STORAGE_PREFIX_MAIN;
 
+// ── 코딩북 판본 · Stage 2 개방 플래그 (D108·D109·D110, 2026-10-01) ──
+// 실서비스 반영 전까지 기본값은 현행 유지(Stage 2 전면 차단, 판본 v2.1).
+// 배포 시(박사님 승인 후) 아래 세 값을 바꾼다. 순서: 판본 '2.2' + 확인 표본 개방 → (90건 수거 후) AI 개방.
+const STAGE2_CODEBOOK_VERSION = '2.1';  // Stage 2 코딩북 판본. v2.2 동결(D108, 2026-10-05) 뒤 '2.2'
+const STAGE2_CONFIRM_OPEN = false;       // true: Stage 2 진입 허용, 본인 stage2_crosscheck 90건만 AI 숨김(blind)으로 연다
+const STAGE2_AI_OPEN = false;            // true: 본인 90건 완료 + ai_prelabels.json 배치 시 나머지 AI 노출 문항을 연다
+// 모드별 코딩북 판본 (Stage 1 = v2.0(D61), Stage 1-R = v2.1(D96), Stage 2 = 위 플래그)
+const MODE_CODEBOOK_VERSION = { '1': '2.0', '1r': '2.1', '2': STAGE2_CODEBOOK_VERSION };
+function modeCodebookVersion() {
+  if (isPilot || isDemo) return null;
+  return MODE_CODEBOOK_VERSION[stageNum] || null;
+}
+// v2.2(코딩북 2-18·5-1): 주목표 NA(NA-OUTSIDE·NA-UNSURE)와 RT-A·B·C 동시 입력 금지.
+// 판본이 v2.2 이상인 모드에서만 적용한다(Stage 1 v2.0·1-R v2.1 기록 조건 불변). RT-D·RT-NONE 은 NA와 함께 허용.
+const RT_ABC_CODES = ['A', 'B', 'C'];
+function naRtExclusiveActive() {
+  const v = modeCodebookVersion();
+  return !!v && parseFloat(v) >= 2.2;
+}
+function isNaRtConflict(sdg, redTag) {
+  return naRtExclusiveActive() && sdg === 'NA' && RT_ABC_CODES.includes(redTag);
+}
+
 // 5P ↔ SDG 매핑
 const P5_TO_SDGS = {
   People:      ['SDG1','SDG2','SDG3','SDG4','SDG5'],
@@ -1048,6 +1074,10 @@ let annotatorFullName = '';   // 본인 이름 (예: "박정진")
 let stageNum = '1';           // '1' | '2' | 'pilot' | 'demo'
 let isPilot = false;          // 편의 플래그 (startSession에서 셋)
 let isDemo = false;           // 데모(시연용) 플래그 (startSession에서 셋)
+// Stage 2 확인 표본 blind (D109): stage2_crosscheck 90건은 AI 사전라벨을 숨긴 화면으로만 받는다.
+let blindIdSet = new Set();   // 본인 stage2_crosscheck id (문자열)
+let stage2Phase = '';         // 'blind'(90건만) | 'full'(90건 + AI 노출 문항) | ''(Stage 2 아님)
+let blindDoneNotified = false;
 let db = null;
 let renderTime = 0;           // 현재 레코드 표시 시작 타임스탬프
 let durationTimer = null;
@@ -1177,6 +1207,12 @@ async function loadBootstrap() {
     info.innerHTML = `<strong>✅ 할당 파일 로드</strong>${statusParts.join(' · ')}`;
   }
 
+  // D109: 확인 표본 라운드를 열었을 때만 Stage 2 모드 표기를 바꾼다(기본값에서는 기존 문구 그대로).
+  if (STAGE2_CONFIRM_OPEN) {
+    const opt2 = document.querySelector('#stage-select option[value="2"]');
+    if (opt2) opt2.textContent = `Stage 2 — 코딩북 v${STAGE2_CODEBOOK_VERSION} · 적용 표본(Blind) 먼저 → 검수(AI Top-3 노출)`;
+  }
+
   document.getElementById('annotator-name').addEventListener('change', checkCanStart);
   document.getElementById('stage-select').addEventListener('change', () => {
     autoMatchSlot();
@@ -1276,7 +1312,9 @@ async function startSession() {
   // S2-2 시작 게이트 (2026-07-17): AI 사전라벨(ai_prelabels.json) 미배치 상태에서
   // Stage 2를 열면 무경고 Blind 격하가 발생하므로 배치 전까지 진입 자체를 차단한다.
   // 해제: 사전라벨 생성·배치 후 이 블록 제거(정식 무결성 게이트로 교체 예정).
-  if (!isDemo && !isPilot && stageNum === '2') {
+  // D109(2026-10-01): STAGE2_CONFIRM_OPEN=true 이면 진입을 허용하되 확인 표본 90건(blind)만 연다.
+  // AI 노출 문항은 아래 stage2Phase 게이트(본인 90건 완료 + STAGE2_AI_OPEN + 사전라벨 배치)로 막는다.
+  if (!isDemo && !isPilot && stageNum === '2' && !STAGE2_CONFIRM_OPEN) {
     alert('⛔ Stage 2는 아직 열리지 않았습니다.\n' +
           '(AI 사전라벨 배치 후 개방 예정 — 지금은 Stage 1만 진행)\n' +
           '문의: 관리자(박정진)');
@@ -1317,9 +1355,13 @@ async function startSession() {
   if (!isDemo) {
     const modeLabel = isPilot ? '파일럿'
                     : (stageNum === '1' ? 'Stage 1'
-                    : stageNum === '1r' ? 'Stage 1-R · v2.1 재라벨' : 'Stage 2');
+                    : stageNum === '1r' ? 'Stage 1-R · v2.1 재라벨'
+                    : `Stage 2 · 코딩북 v${STAGE2_CODEBOOK_VERSION}`);
+    const countLabel = (stageNum === '2')
+      ? `${ids.length}건 (앞 ${(slot.stage2_crosscheck || []).length}건은 v${STAGE2_CODEBOOK_VERSION} 적용 표본 · AI 숨김, 먼저 진행)`
+      : `${ids.length}건`;
     const ok = confirm(
-      `슬롯 ${annotatorName} · ${modeLabel} · ${ids.length}건으로 시작합니다.\n` +
+      `슬롯 ${annotatorName} · ${modeLabel} · ${countLabel}으로 시작합니다.\n` +
       `코더: ${annotatorFullName}\n\n본인에게 배정된 슬롯이 맞습니까?`
     );
     if (!ok) {
@@ -1402,6 +1444,32 @@ async function startSession() {
     setSyncStatus('off', '로컬 저장 전용');
   }
 
+  // D109 Stage 2 확인 표본 blind 게이트 — 본인 stage2_crosscheck 90건을 맨 앞에 두고 AI 숨김으로 받는다.
+  // 90건을 모두 저장하기 전에는(또는 AI 개방 전에는) 이 90건만 연다. 90건은 AI 개방 뒤에도 계속 blind 로 렌더한다.
+  blindIdSet = new Set();
+  stage2Phase = '';
+  blindDoneNotified = false;
+  if (stageNum === '2') {
+    blindIdSet = new Set((slot.stage2_crosscheck || []).map(String));
+    const recKey = r => String(r.id ?? r.sample_id);
+    const blindRecs = records.filter(r => blindIdSet.has(recKey(r)));
+    const restRecs  = records.filter(r => !blindIdSet.has(recKey(r)));
+    if (blindIdSet.size === 0 || blindRecs.length !== blindIdSet.size) {
+      alert(`적용 표본 배정 오류: 배정 ${blindIdSet.size}건 중 풀에서 찾은 것 ${blindRecs.length}건.\n문의: 관리자(박정진)`);
+      return;
+    }
+    const blindDone = blindRecs.filter(r => annotations[recKey(r)]?.blindConfirm === true).length;
+    const aiReady = STAGE2_AI_OPEN && Object.keys(aiPrelabels || {}).length > 0;
+    if (blindDone === blindRecs.length && aiReady) {
+      stage2Phase = 'full';
+      records = blindRecs.concat(restRecs);
+    } else {
+      stage2Phase = 'blind';
+      records = blindRecs;
+      if (blindDone === blindRecs.length) blindDoneNotified = true;  // 이미 완료 — 재안내 생략
+    }
+  }
+
   // 첫 미완료 레코드 찾기
   currentIdx = 0;
   for (let i = 0; i < records.length; i++) {
@@ -1423,6 +1491,9 @@ async function startSession() {
     sb.className = 'stage-badge s-pilot';
   } else {
     sb.textContent = stageNum === '1r' ? 'Stage 1-R · v2.1 재라벨 · Blind'
+                 : stageNum === '2' ? (stage2Phase === 'blind'
+                     ? `Stage 2 · v${STAGE2_CODEBOOK_VERSION} 적용 표본 · Blind`
+                     : `Stage 2 · v${STAGE2_CODEBOOK_VERSION} · 검수 (앞 ${blindIdSet.size}건 Blind)`)
                  : 'Stage ' + stageNum + (stageNum === '1' ? ' · Blind' : ' · 검수');
     sb.className = 'stage-badge s' + stageNum;
   }
@@ -1462,9 +1533,9 @@ function renderRecord() {
   // S1-7: 예산현액·집행률 참고 정보 (읽기 전용 · Stage 분기 없음 — 앵커링 측정 오염 방지)
   renderBudgetRef(r);
 
-  // Stage 2에서만 AI Top-3 렌더 (파일럿은 Blind)
+  // Stage 2에서만 AI Top-3 렌더 (파일럿은 Blind). D109: 확인 표본 90건은 Stage 2에서도 숨김.
   const aiPanel = document.getElementById('ai-panel');
-  if (!isPilot && stageNum === '2') {
+  if (aiVisibleFor(id)) {
     aiPanel.style.display = 'block';
     renderAiTopK(id);
   } else {
@@ -1557,6 +1628,8 @@ function renderBudgetRef(r) {
 
 function renderAiTopK(id) {
   const wrap = document.getElementById('ai-topk-wrap');
+  // D109: 확인 표본(blind) 문항은 숨긴 패널 안에도 AI 값을 그리지 않는다(DOM 노출 차단).
+  if (isBlindRecordId(id)) { wrap.innerHTML = ''; return; }
   const topk = aiPrelabels[id] || aiPrelabels[String(id)];
   if (!topk || topk.length === 0) {
     wrap.innerHTML = '<div class="ai-none-placeholder">AI 예측 결과가 없습니다. 5P 계층으로 직접 선택하세요.</div>';
@@ -1658,6 +1731,11 @@ function renderTier() {
 
 function renderRedTag() {
   document.querySelectorAll('.redtag-option').forEach(el => el.classList.remove('selected', 'selected-none'));
+  // v2.2: 주목표 NA이면 RT-A·B·C 비활성 표시 (판본 v2.2 이상 모드만)
+  const lockAbc = naRtExclusiveActive() && selPrimarySdg === 'NA';
+  document.querySelectorAll('.redtag-option').forEach(el => {
+    el.classList.toggle('disabled', lockAbc && RT_ABC_CODES.includes(el.dataset.val));
+  });
   if (selRedTag) {
     const el = document.querySelector(`.redtag-option[data-val="${selRedTag}"]`);
     if (el) el.classList.add(selRedTag === 'RT-NONE' ? 'selected-none' : 'selected');
@@ -1704,10 +1782,17 @@ function selectSdg(sdg, aiRank) {
   selAdditionalSdgs = selAdditionalSdgs.filter(s => s !== sdg);
   window._chosenFromAi = (aiRank != null);
   window._aiRank = aiRank;
+  // v2.2(코딩북 2-18): NA를 고르면 이미 고른 RT-A·B·C 를 해제한다
+  let rtCleared = false;
+  if (isNaRtConflict(sdg, selRedTag)) { selRedTag = ''; rtCleared = true; }
   render5P();
   renderSdgGrid();
   renderAiTopK(recId());
   renderAdditional();
+  renderRedTag();
+  if (rtCleared) {
+    showStatus('주목표 NA에는 Red Tag A·B·C를 함께 입력하지 않습니다(코딩북 2-18). 고른 Red Tag를 해제했습니다. RT-NONE 또는 RT-D를 고르세요.', 'error');
+  }
   // M-02: 혼동 빈발 SDG 선택 시 가드 토스트 표시 (400ms 지연)
   // D61(2026-07-17): SDG17 가드는 v2.0 신규분 — 파일럿 모드는 구 3인 조건 동결을 위해 제외
   // (구 파일럿 당시 존재했던 6종 SDG11/10/1/5/8/9는 파일럿에서도 유지).
@@ -1761,6 +1846,7 @@ function clearPrimarySdg() {
   renderSdgGrid();
   renderAiTopK(recId());
   renderAdditional();
+  renderRedTag();
 }
 
 function showManualSelect() {
@@ -1794,6 +1880,10 @@ function toggleAdditional(sdg) {
 }
 
 function selectRedTag(val) {
+  if (isNaRtConflict(selPrimarySdg, val)) {
+    showStatus('주목표가 NA이면 Red Tag A·B·C를 고를 수 없습니다(코딩북 2-18). SDG 표현은 있으나 실체가 없다고 보면 주목표 SDG + RT-B로 입력하세요.', 'error');
+    return;
+  }
   selRedTag = val;
   renderRedTag();
 }
@@ -1801,6 +1891,14 @@ function selectRedTag(val) {
 function recId() {
   const r = records[currentIdx];
   return r ? (r.id ?? r.sample_id ?? currentIdx) : null;
+}
+// D109: Stage 2 확인 표본(blind) 문항인가
+function isBlindRecordId(id) {
+  return !isPilot && !isDemo && stageNum === '2' && blindIdSet.has(String(id));
+}
+// AI Top-3 를 보여도 되는 문항인가 — Stage 2 의 'full' 단계이면서 확인 표본이 아닌 문항만
+function aiVisibleFor(id) {
+  return !isPilot && !isDemo && stageNum === '2' && stage2Phase === 'full' && !blindIdSet.has(String(id));
 }
 
 // ══════════════════════════════════════════
@@ -1901,9 +1999,18 @@ function collectAnnotation() {
     timestamp: new Date().toISOString(),
     durationSec: Math.max(0, Math.round((Date.now() - renderTime) / 1000)),
   };
-  if (!isPilot && stageNum === '2') {
+  if (aiVisibleFor(id)) {
     const topk = aiPrelabels[id] || aiPrelabels[String(id)] || [];
     ann.aiTopK = topk.slice(0, 3).map(t => ({ sdg: t.sdg || t.label, prob: t.prob ?? t.score ?? 0 }));
+  }
+  // D109: Stage 2 레코드에 blind 여부·판본을 남긴다. 저장 경로·키 구조는 Stage 1과 같다
+  // (sdg_main_2026/stage2/{슬롯}/{sample_id}). Stage 1·1-R·파일럿·데모 레코드 구조는 불변.
+  if (!isPilot && !isDemo && stageNum === '2') {
+    const blind = isBlindRecordId(id);
+    ann.blindConfirm = blind;
+    ann.aiShown = !blind && aiVisibleFor(id);
+    ann.codebookVersion = STAGE2_CODEBOOK_VERSION;
+    if (blind) { ann.chosenFromAI = false; ann.aiRank = null; ann.aiTopK = null; }
   }
   return ann;
 }
@@ -1913,6 +2020,10 @@ function validateAnnotation(ann) {
   // NA-UNSURE 또는 tier=unknown은 skip 경로로 허용 (단, NA 선택 시 사유는 있어야 함)
   if (ann.sdgPath.sdg === 'NA' && !ann.sdgPath.naReason) {
     return '해당 없음(NA) 사유를 선택하세요 — 17개 목표 외(NA-OUTSIDE) 또는 판단 불가(NA-UNSURE).';
+  }
+  // v2.2(코딩북 2-18·5-1): NA + RT-A·B·C 조합 저장 차단 (skip 경로보다 먼저 검사 — NA-UNSURE도 포함)
+  if (isNaRtConflict(ann.sdgPath.sdg, ann.redTag)) {
+    return '주목표 NA에는 Red Tag A·B·C를 함께 입력할 수 없습니다(코딩북 2-18). RT-NONE 또는 RT-D로 바꾸거나, 주목표 SDG를 고르세요.';
   }
   if (ann.tier === 'unknown') return null;  // skip 허용
   if (!ann.sdgPath.sdg) return '주목표 SDG를 선택하세요 (또는 "해당 없음").';
@@ -1980,6 +2091,13 @@ function saveAnnotation() {
   showStatus(db ? '✓ 저장 및 Firebase 동기화' : '✓ 저장됨 (로컬)', 'saved');
   updateStats();
   updateMiniGrid();
+  // D109: 적용 표본(blind) 90건을 모두 마치면 1회 안내. 다음 단계는 세션을 다시 시작해야 열린다.
+  if (stage2Phase === 'blind' && !blindDoneNotified &&
+      [...blindIdSet].every(k => annotations[k]?.blindConfirm === true)) {
+    blindDoneNotified = true;
+    setTimeout(() => alert(`v${STAGE2_CODEBOOK_VERSION} 적용 표본 ${blindIdSet.size}건을 모두 저장했습니다.\n` +
+      '다음 단계(AI 검수)는 관리자가 연 뒤 세션을 다시 시작하면 열립니다.'), 450);
+  }
   // S1-5a: 연타의 2차 클릭이 '다음 레코드'에 실행되는 것을 막기 위해 짧은 디바운스 후 해제.
   // (동기 저장은 이미 끝났고, 이 창은 인접 레코드 훼손·건너뜀만 차단한다.)
   setTimeout(() => setSaveLock(false), 400);
