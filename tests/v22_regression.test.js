@@ -120,6 +120,10 @@ function save(env) { const ok = env.run('saveAnnotation()'); env.run('saving = f
 async function main() {
   const NEW = fs.readFileSync(NEW_HTML, 'utf8');
   const OPEN22 = { STAGE2_CODEBOOK_VERSION: '2.2', STAGE2_CONFIRM_OPEN: true };
+  // 파일 기본값과 무관하게 '닫힘' 상태를 고정해 시험한다(배포 커밋에서 플래그를 바꿔도 시험이 유효하도록)
+  const CLOSED = { STAGE2_CODEBOOK_VERSION: '2.1', STAGE2_CONFIRM_OPEN: false, STAGE2_AI_OPEN: false };
+  const fileFlag = k => (NEW.match(new RegExp(`const ${k} = ([^;]+);`)) || [])[1];
+  console.log('파일 기본값: ' + ['STAGE2_CODEBOOK_VERSION', 'STAGE2_CONFIRM_OPEN', 'STAGE2_AI_OPEN'].map(k => k + '=' + fileFlag(k)).join(' · '));
 
   console.log('\n[1] Stage 1 (v2.0) — 기존 동작 유지');
   {
@@ -153,9 +157,9 @@ async function main() {
     check('localStorage 키 _s1r', e.store.has('sdg_anno_v2_B_s1r'));
   }
 
-  console.log('\n[3] Stage 2 기본값(플래그 닫힘) — 기존 차단 유지');
+  console.log('\n[3] Stage 2 플래그 닫힘 — 기존 차단 유지');
   {
-    const e = makeEnv(NEW);
+    const e = makeEnv(NEW, { flags: CLOSED });
     await start(e, 'A', '2');
     check('차단 안내 표시', e.alerts.some(m => m.includes('Stage 2는 아직 열리지 않았습니다')), e.alerts);
     check('레코드 미로드', recIds(e).length === 0);
@@ -258,7 +262,7 @@ async function main() {
 
   console.log('\n[8] Stage 2 판본 v2.1 로 개방 — NA 규칙은 판본에 묶여 꺼짐');
   {
-    const e = makeEnv(NEW, { flags: { STAGE2_CONFIRM_OPEN: true } });
+    const e = makeEnv(NEW, { flags: { STAGE2_CODEBOOK_VERSION: '2.1', STAGE2_CONFIRM_OPEN: true } });
     await start(e, 'C', '2');
     check('90건 blind', recIds(e).length === 90);
     fill(e, { sdg: 'NA', na: 'outside', rt: 'B', why: 'x' });
@@ -314,8 +318,8 @@ async function main() {
       check(`${mode}: 저장 결과·배지·AI 패널 동일`, out[0].ok === out[1].ok && out[0].badge === out[1].badge && out[0].ai === out[1].ai);
     }
     const eb = makeEnv(BASE); await start(eb, 'A', '2');
-    const en = makeEnv(NEW); await start(en, 'A', '2');
-    check('Stage 2 기본값 차단 안내 동일', JSON.stringify(eb.alerts) === JSON.stringify(en.alerts));
+    const en = makeEnv(NEW, { flags: CLOSED }); await start(en, 'A', '2');
+    check('Stage 2 플래그 닫힘 차단 안내 동일', JSON.stringify(eb.alerts) === JSON.stringify(en.alerts));
   }
 
   console.log(`\n결과: ${pass} 통과 · ${fail} 실패`);
