@@ -935,7 +935,24 @@ let STORAGE_PREFIX = STORAGE_PREFIX_MAIN;
 // 배포 시(박사님 승인 후) 아래 세 값을 바꾼다. 순서: 판본 '2.2' + 확인 표본 개방 → (90건 수거 후) AI 개방.
 const STAGE2_CODEBOOK_VERSION = '2.2';  // Stage 2 코딩북 판본. v2.2 동결 2026-10-02 (D108·D111)
 const STAGE2_CONFIRM_OPEN = true;        // true: Stage 2 진입 허용, 본인 stage2_crosscheck 90건만 AI 숨김(blind)으로 연다
-const STAGE2_AI_OPEN = false;            // true: 본인 90건 완료 + ai_prelabels.json 배치 시 나머지 AI 노출 문항을 연다
+const STAGE2_AI_OPEN = false;            // true: ⑤ AI 노출 단계 허용(STAGE2_STEP_MAX ≥ 5 + ai_prelabels.json 무결성 통과도 필요)
+const STAGE2_STEP_MAX = 4;               // 열 수 있는 마지막 단계(1~5). 1 = 확인 표본만(현행). 앞 단계를 다 내면 다음 단계가 자동으로 열린다
+// Stage 2 작업 순서(사람 단위 게이트, D111 채택안 · 통합설계안 §8-3 · 감사를 AI 노출 앞으로).
+// 기록은 전부 sdg_main_2026/stage2/{슬롯}/{sample_id} 한 노드에 쌓는다(규칙 재게시 불필요). 단계별 문항 집합은 서로 겹치지 않는다.
+// 화면에는 단계 이름과 남은 건수만 보인다(목적·선정 사유 비표시).
+const STAGE2_STEPS = [
+  { no: 1, keys: ['stage2_crosscheck'], pool: 'stage2', task: 'confirm', labelSource: 'H3_CONFIRM_V22', ai: false,
+    name: () => `v${STAGE2_CODEBOOK_VERSION} 적용 표본` },
+  { no: 2, keys: ['stage1v22_samples', 'stage1v22_extra_samples'], pool: 'stage1', task: 'testset_relabel', labelSource: 'H3_BLIND', ai: false,
+    name: () => `v${STAGE2_CODEBOOK_VERSION} 재판정 문항` },
+  { no: 3, keys: ['stage2_blind1_samples'], pool: 'stage2', task: r => (r.scope === '전국' ? 'blind1_external' : r.scope === '경기' ? 'blind1_val' : null),
+    labelSource: 'H1_BLIND_EXTRA', ai: false, name: () => '추가 판정' },
+  { no: 4, keys: ['stage2_audit_samples'], pool: 'stage2', task: 'audit', labelSource: 'AUDIT2_BLIND', ai: false,
+    name: () => '추가 판정 2' },
+  { no: 5, keys: ['stage2_target_samples', 'stage2_anchor_samples'], pool: 'stage2', task: 'targeted', labelSource: 'H_TARGET_AIEXP', ai: true,
+    name: () => 'AI 초안 검토' },
+];
+const STAGE2_BLIND_KEYS = ['stage2_crosscheck', 'stage1v22_samples', 'stage1v22_extra_samples', 'stage2_blind1_samples', 'stage2_audit_samples'];
 // 모드별 코딩북 판본 (Stage 1 = v2.0(D61), Stage 1-R = v2.1(D96), Stage 2 = 위 플래그)
 const MODE_CODEBOOK_VERSION = { '1': '2.0', '1r': '2.1', '2': STAGE2_CODEBOOK_VERSION };
 function modeCodebookVersion() {
@@ -1076,8 +1093,15 @@ let isPilot = false;          // 편의 플래그 (startSession에서 셋)
 let isDemo = false;           // 데모(시연용) 플래그 (startSession에서 셋)
 // Stage 2 확인 표본 blind (D109): stage2_crosscheck 90건은 AI 사전라벨을 숨긴 화면으로만 받는다.
 let blindIdSet = new Set();   // 본인 stage2_crosscheck id (문자열)
-let stage2Phase = '';         // 'blind'(90건만) | 'full'(90건 + AI 노출 문항) | ''(Stage 2 아님)
-let blindDoneNotified = false;
+let stage2Phase = '';         // 'blind'(① 확인 표본) | 'step2'~'step5' | ''(Stage 2 아님)
+let blindDoneNotified = false; // 현재 단계 완료 안내를 이미 했는가
+let stage2StepList = [];      // [{...STAGE2_STEPS[i], recs, ids:Set}] — startSession 에서 슬롯별로 채운다
+let stage2Cur = null;         // 현재 열린 단계
+let stage2TaskById = {};      // {id: {task, labelSource, step}}
+let aiIdSet = new Set();      // AI 사전라벨을 보여도 되는 문항(⑤ 단계가 열렸을 때만 채움)
+let aiPanelShell = null;      // ⑤ 이전에는 AI 패널을 DOM 에서 떼어 둔다
+let aiPanelAnchor = null;
+let stage2Advance = null;     // 단계 전환 Promise(시험용)
 let db = null;
 let renderTime = 0;           // 현재 레코드 표시 시작 타임스탬프
 let durationTimer = null;
@@ -1144,7 +1168,7 @@ function setSyncStatus(state, label) {
 // GitHub Pages 는 data/*.json 을 브라우저·CDN 캐시에 남기므로, 배정 파일을 갱신해도
 // 기존 접속자가 구본을 계속 쓴다(슬롯 자동매칭 해시 전환 때 실측됨). 배포 시각을 쿼리로
 // 붙이고 no-store 를 지정해 항상 최신본을 받는다. 값은 배포할 때마다 갱신할 것.
-const DATA_VERSION = '20260908-1';
+const DATA_VERSION = '20261003-1';
 const NO_CACHE = { cache: 'no-store' };
 const dataUrl = (path) => path + '?v=' + DATA_VERSION;
 
@@ -1191,13 +1215,9 @@ async function loadBootstrap() {
     }
   } catch (e) { /* 데모 파일 없으면 데모 모드만 비활성, 무시 */ }
 
-  // AI prelabels (Stage 2만 사용)
-  try {
-    const r3 = await fetch('data/ai_prelabels.json');
-    if (r3.ok) aiPrelabels = await r3.json();
-  } catch (e) {
-    aiPrelabels = {};
-  }
+  // AI prelabels: 시작 화면에서는 읽지 않는다. Stage 2 ⑤ 단계를 열 때만 loadAiPrelabels() 로 받는다
+  // (그 전 단계에서는 AI 값이 메모리·DOM 어디에도 없게 한다).
+  aiPrelabels = {};
 
   if (!anyLoaded) {
     info.innerHTML = `<strong>❌ 할당 파일 모두 로드 실패</strong>assignments.json 또는 pilot_assignments.json 필요.<br><small>generate_assignments.py 실행 or 파일럿 데이터 배치</small>`;
@@ -1313,7 +1333,7 @@ async function startSession() {
   // Stage 2를 열면 무경고 Blind 격하가 발생하므로 배치 전까지 진입 자체를 차단한다.
   // 해제: 사전라벨 생성·배치 후 이 블록 제거(정식 무결성 게이트로 교체 예정).
   // D109(2026-10-01): STAGE2_CONFIRM_OPEN=true 이면 진입을 허용하되 확인 표본 90건(blind)만 연다.
-  // AI 노출 문항은 아래 stage2Phase 게이트(본인 90건 완료 + STAGE2_AI_OPEN + 사전라벨 배치)로 막는다.
+  // AI 노출 문항은 아래 단계 게이트(① ~ ④ 완료 + STAGE2_STEP_MAX ≥ 5 + STAGE2_AI_OPEN + 사전라벨 무결성)로 막는다(D111).
   if (!isDemo && !isPilot && stageNum === '2' && !STAGE2_CONFIRM_OPEN) {
     alert('⛔ Stage 2는 아직 열리지 않았습니다.\n' +
           '(AI 사전라벨 배치 후 개방 예정 — 지금은 Stage 1만 진행)\n' +
@@ -1348,7 +1368,7 @@ async function startSession() {
   else if (isPilot)               ids = slot.pilot_samples  || [];
   else if (stageNum === '1')      ids = slot.stage1_samples || [];
   else if (stageNum === '1r')     ids = slot.stage1r_samples || [];   // D96 재라벨 라운드
-  else                             ids = slot.stage2_samples || [];
+  else                             ids = stage2SlotIds(slot);           // 단계 배정 키 합집합(stage2_samples 는 읽지 않음)
 
   // S1-8: 슬롯 오선택 방지 — 시작 직전 슬롯·모드·건수를 요약해 명시적 확인을 받는다.
   // (데모는 로컬 전용 시연이라 확인 생략) 취소 시 시작 버튼을 원상 복구한다.
@@ -1358,7 +1378,7 @@ async function startSession() {
                     : stageNum === '1r' ? 'Stage 1-R · v2.1 재라벨'
                     : `Stage 2 · 코딩북 v${STAGE2_CODEBOOK_VERSION}`);
     const countLabel = (stageNum === '2')
-      ? `${ids.length}건 (앞 ${(slot.stage2_crosscheck || []).length}건은 v${STAGE2_CODEBOOK_VERSION} 적용 표본 · AI 숨김, 먼저 진행)`
+      ? '단계별 진행 (앞 단계를 마치면 다음 단계가 열립니다)'
       : `${ids.length}건`;
     const ok = confirm(
       `슬롯 ${annotatorName} · ${modeLabel} · ${countLabel}으로 시작합니다.\n` +
@@ -1385,8 +1405,28 @@ async function startSession() {
     alert(poolFile + ' 로드 실패: ' + e.message);
     return;
   }
+  // Stage 2 ② 평가셋 재라벨은 Stage 1 문항이므로 Stage 1 풀도 읽는다(같은 stage2 노드에 저장, id 는 Stage 2와 겹치지 않음).
+  let pool1 = [];
+  if (!isDemo && !isPilot && stageNum === '2') {
+    const needS1 = STAGE2_STEPS.filter(s => s.pool === 'stage1').some(s => s.keys.some(k => (slot[k] || []).length));
+    if (needS1) {
+      try {
+        const r = await fetch('data/stage1_pool.json');
+        if (!r.ok) throw new Error('data/stage1_pool.json HTTP ' + r.status);
+        pool1 = await r.json();
+      } catch (e) {
+        alert('data/stage1_pool.json 로드 실패: ' + e.message);
+        return;
+      }
+    }
+  }
   const idSet = new Set(ids.map(String));
   records = pool.filter(r => idSet.has(String(r.id ?? r.sample_id)));
+  if (!isDemo && !isPilot && stageNum === '2') {
+    const err = buildStage2Steps(slot, pool, pool1);
+    if (err) { alert(err + '\n문의: 관리자(박정진)'); return; }
+    records = stage2StepList[0].recs;
+  }
   if (records.length === 0) { alert('할당된 레코드가 없습니다.'); return; }
 
   // 로컬 저장 키 (모드별 네임스페이스)
@@ -1444,30 +1484,21 @@ async function startSession() {
     setSyncStatus('off', '로컬 저장 전용');
   }
 
-  // D109 Stage 2 확인 표본 blind 게이트 — 본인 stage2_crosscheck 90건을 맨 앞에 두고 AI 숨김으로 받는다.
-  // 90건을 모두 저장하기 전에는(또는 AI 개방 전에는) 이 90건만 연다. 90건은 AI 개방 뒤에도 계속 blind 로 렌더한다.
+  // Stage 2 단계 게이트(사람 단위, D109·D111) — ① 확인 표본 → ② 평가셋 재라벨 → ③ blind 1인 → ④ 감사 → ⑤ AI 노출 표적 검수.
+  // 앞 단계를 다 내야 다음 단계가 열리고(STAGE2_STEP_MAX 상한), 한 번에 한 단계 문항만 보인다.
+  // ① 90건은 어느 단계에서도 AI 를 보이지 않는다. ⑤ 이전에는 AI 패널을 DOM 에서 떼어 두고 사전라벨도 읽지 않는다.
   blindIdSet = new Set();
   stage2Phase = '';
   blindDoneNotified = false;
+  stage2Cur = null;
+  aiIdSet = new Set();
+  aiPrelabels = {};
+  attachAiPanel();   // 이전 세션이 떼어 둔 패널 복구(같은 페이지에서 다른 모드로 다시 시작하는 경우)
   if (stageNum === '2') {
     blindIdSet = new Set((slot.stage2_crosscheck || []).map(String));
-    const recKey = r => String(r.id ?? r.sample_id);
-    const blindRecs = records.filter(r => blindIdSet.has(recKey(r)));
-    const restRecs  = records.filter(r => !blindIdSet.has(recKey(r)));
-    if (blindIdSet.size === 0 || blindRecs.length !== blindIdSet.size) {
-      alert(`적용 표본 배정 오류: 배정 ${blindIdSet.size}건 중 풀에서 찾은 것 ${blindRecs.length}건.\n문의: 관리자(박정진)`);
-      return;
-    }
-    const blindDone = blindRecs.filter(r => annotations[recKey(r)]?.blindConfirm === true).length;
-    const aiReady = STAGE2_AI_OPEN && Object.keys(aiPrelabels || {}).length > 0;
-    if (blindDone === blindRecs.length && aiReady) {
-      stage2Phase = 'full';
-      records = blindRecs.concat(restRecs);
-    } else {
-      stage2Phase = 'blind';
-      records = blindRecs;
-      if (blindDone === blindRecs.length) blindDoneNotified = true;  // 이미 완료 — 재안내 생략
-    }
+    const pick = await chooseStage2Step();
+    setStage2Step(pick.step, pick.notified);
+    if (pick.aiError) alert('AI 초안 검토 단계를 열 수 없습니다(파일 점검 필요).\n문의: 관리자(박정진)');
   }
 
   // 첫 미완료 레코드 찾기
@@ -1491,15 +1522,150 @@ async function startSession() {
     sb.className = 'stage-badge s-pilot';
   } else {
     sb.textContent = stageNum === '1r' ? 'Stage 1-R · v2.1 재라벨 · Blind'
-                 : stageNum === '2' ? (stage2Phase === 'blind'
-                     ? `Stage 2 · v${STAGE2_CODEBOOK_VERSION} 적용 표본 · Blind`
-                     : `Stage 2 · v${STAGE2_CODEBOOK_VERSION} · 검수 (앞 ${blindIdSet.size}건 Blind)`)
+                 : stageNum === '2' ? stage2BadgeText()
                  : 'Stage ' + stageNum + (stageNum === '1' ? ' · Blind' : ' · 검수');
     sb.className = 'stage-badge s' + stageNum;
   }
 
   buildMiniGrid();
   renderRecord();
+}
+
+// ══════════════════════════════════════════
+//  STAGE 2 단계 게이트 (D111)
+// ══════════════════════════════════════════
+function stage2SlotIds(slot) {
+  return STAGE2_STEPS.flatMap(s => s.keys.flatMap(k => slot[k] || []));
+}
+// 슬롯 배정 → 단계별 레코드. 단계 사이 id 가 겹치면(같은 stage2/{슬롯}/{id} 키 충돌) 시작하지 않는다.
+function buildStage2Steps(slot, pool2, pool1) {
+  stage2StepList = [];
+  stage2TaskById = {};
+  const seen = new Set();
+  for (const def of STAGE2_STEPS) {
+    const idSet = new Set(def.keys.flatMap(k => (slot[k] || []).map(String)));
+    const src = def.pool === 'stage1' ? pool1 : pool2;
+    const recs = src.filter(r => idSet.has(String(r.id ?? r.sample_id)));
+    if (def.no === 1 && (idSet.size === 0 || recs.length !== idSet.size)) {
+      return `적용 표본 배정 오류: 배정 ${idSet.size}건 중 풀에서 찾은 것 ${recs.length}건.`;
+    }
+    if (recs.length !== idSet.size) return `${def.name()} 배정 오류: 배정 ${idSet.size}건 중 풀에서 찾은 것 ${recs.length}건.`;
+    for (const r of recs) {
+      const id = String(r.id ?? r.sample_id);
+      if (seen.has(id)) return `단계 배정 오류: 같은 문항(id ${id})이 두 단계에 배정됨.`;
+      seen.add(id);
+      const task = typeof def.task === 'function' ? def.task(r) : def.task;
+      if (!task) return `${def.name()} 배정 오류: 문항 구분 불가(id ${id}).`;
+      stage2TaskById[id] = { task, labelSource: def.labelSource, step: def.no };
+    }
+    stage2StepList.push({ ...def, recs, ids: idSet });
+  }
+  return null;
+}
+function stage2RecSaved(step, r) {
+  const id = String(r.id ?? r.sample_id);
+  const a = annotations[id];
+  if (!a) return false;
+  if (step.no === 1) return a.blindConfirm === true;   // ① 기존 레코드 구조 그대로 판정
+  return a.task === stage2TaskById[id]?.task;
+}
+function stage2StepDone(step) { return step.recs.every(r => stage2RecSaved(step, r)); }
+function stage2Remaining(step) { return step.recs.filter(r => !stage2RecSaved(step, r)).length; }
+
+// ⑤ 전용 AI 사전라벨 무결성: 본인 ⑤ 문항 전부 있고, 어느 슬롯의 blind 문항도 없어야 한다.
+function checkAiPrelabels(pre, step) {
+  const keys = new Set(Object.keys(pre || {}).map(String));
+  if (keys.size === 0) return 'AI 초안 파일이 비어 있음';
+  const missing = [...step.ids].filter(id => !keys.has(id));
+  if (missing.length) return `AI 초안 누락 ${missing.length}건`;
+  for (const s of Object.values(assignmentMap?.annotators || {})) {
+    for (const k of STAGE2_BLIND_KEYS) {
+      for (const id of (s[k] || [])) if (keys.has(String(id))) return `AI 초안 파일에 비노출 문항 포함(id ${id})`;
+    }
+  }
+  return null;
+}
+let stage2AiError = '';
+async function loadAiPrelabels(step) {
+  let pre = null;
+  try {
+    const r = await fetch(dataUrl('data/ai_prelabels.json'), NO_CACHE);
+    if (r.ok) pre = await r.json();
+  } catch (e) { pre = null; }
+  const err = pre ? checkAiPrelabels(pre, step) : 'AI 초안 파일 없음';
+  if (err) { stage2AiError = err; console.warn('AI 초안 단계 차단:', err); return false; }
+  aiPrelabels = {};
+  step.ids.forEach(id => { aiPrelabels[id] = pre[id]; });   // 본인 ⑤ 문항 몫만 메모리에 둔다
+  return true;
+}
+async function stage2StepOpenable(step) {
+  if (step.no > STAGE2_STEP_MAX) return false;
+  if (!step.ai) return true;
+  if (!STAGE2_AI_OPEN) return false;
+  return loadAiPrelabels(step);
+}
+// 첫 미완료 단계를 연다. 그 단계를 열 수 없으면(상한·AI 잠금) 마지막으로 끝낸 단계를 그대로 보인다.
+async function chooseStage2Step() {
+  stage2AiError = '';
+  const steps = stage2StepList.filter(s => s.recs.length > 0);
+  const done = [];
+  let blocked = false;
+  for (const s of steps) {
+    if (stage2StepDone(s)) { done.push(s); continue; }
+    if (await stage2StepOpenable(s)) return { step: s, notified: false, aiError: stage2AiError };
+    blocked = true;
+    break;
+  }
+  for (let i = done.length - 1; i >= 0; i--) {
+    if (done[i].no === 1 || await stage2StepOpenable(done[i])) return { step: done[i], notified: true, aiError: stage2AiError };
+  }
+  return { step: steps[0], notified: blocked, aiError: stage2AiError };
+}
+function setStage2Step(step, notified) {
+  stage2Cur = step;
+  records = step.recs;
+  stage2Phase = step.no === 1 ? 'blind' : 'step' + step.no;
+  blindDoneNotified = !!notified;
+  aiIdSet = step.ai ? new Set(step.ids) : new Set();
+  if (!step.ai) aiPrelabels = {};
+  if (step.ai) attachAiPanel(); else detachAiPanel();
+}
+function stage2BadgeText() {
+  if (!stage2Cur || stage2Cur.no === 1) return `Stage 2 · v${STAGE2_CODEBOOK_VERSION} 적용 표본 · Blind`;
+  return `Stage 2 · ${stage2Cur.name()}` + (stage2Cur.ai ? '' : ' · Blind');
+}
+// ⑤ 이전: AI 패널을 DOM 에서 떼어 둔다(숨김이 아니라 제거). ⑤: 원래 자리에 되붙인다.
+function detachAiPanel() {
+  const p = document.getElementById('ai-panel');
+  if (!p || !p.parentNode) return;
+  aiPanelAnchor = { parent: p.parentNode, next: p.nextSibling };
+  aiPanelShell = p;
+  p.parentNode.removeChild(p);
+}
+function attachAiPanel() {
+  if (!aiPanelShell || !aiPanelAnchor) return;
+  aiPanelAnchor.parent.insertBefore(aiPanelShell, aiPanelAnchor.next);
+  aiPanelShell = null;
+  aiPanelAnchor = null;
+}
+// 현재 단계를 다 내면 호출. 다음 단계를 열 수 있으면 바로 연다(자동 개방).
+async function advanceStage2Step() {
+  const cur = stage2Cur;
+  if (!cur) return;
+  const pick = await chooseStage2Step();
+  const doneMsg = `${cur.name()} ${cur.recs.length}건을 모두 저장했습니다.\n`;
+  if (pick.step !== cur && !pick.notified) {
+    alert(doneMsg + `이어서 「${pick.step.name()}」 ${stage2Remaining(pick.step)}건을 엽니다.`);
+    setStage2Step(pick.step, false);
+    currentIdx = Math.max(0, records.findIndex(r => !stage2RecSaved(pick.step, r)));
+    document.getElementById('header-stage').textContent = stage2BadgeText();
+    buildMiniGrid();
+    renderRecord();
+    return;
+  }
+  const later = stage2StepList.some(s => s.no > cur.no && s.recs.length > 0 && !stage2StepDone(s));
+  alert(doneMsg + (later ? '다음 단계는 관리자가 연 뒤 세션을 다시 시작하면 열립니다.' : '배정된 단계를 모두 마쳤습니다.'));
+  if (pick.aiError) alert('AI 초안 검토 단계를 열 수 없습니다(파일 점검 필요).\n문의: 관리자(박정진)');
 }
 
 // ══════════════════════════════════════════
@@ -1534,11 +1700,12 @@ function renderRecord() {
   renderBudgetRef(r);
 
   // Stage 2에서만 AI Top-3 렌더 (파일럿은 Blind). D109: 확인 표본 90건은 Stage 2에서도 숨김.
+  // D111: Stage 2 ⑤ 이전 단계에서는 패널 자체가 DOM 에 없다(detachAiPanel).
   const aiPanel = document.getElementById('ai-panel');
-  if (aiVisibleFor(id)) {
+  if (aiPanel && aiVisibleFor(id)) {
     aiPanel.style.display = 'block';
     renderAiTopK(id);
-  } else {
+  } else if (aiPanel) {
     aiPanel.style.display = 'none';
   }
 
@@ -1628,8 +1795,10 @@ function renderBudgetRef(r) {
 
 function renderAiTopK(id) {
   const wrap = document.getElementById('ai-topk-wrap');
+  if (!wrap) return;   // D111: Stage 2 ⑤ 이전에는 패널이 DOM 에 없다
   // D109: 확인 표본(blind) 문항은 숨긴 패널 안에도 AI 값을 그리지 않는다(DOM 노출 차단).
-  if (isBlindRecordId(id)) { wrap.innerHTML = ''; return; }
+  // D111: Stage 2 는 ⑤ 단계 문항(aiIdSet)만 그린다.
+  if (isBlindRecordId(id) || (!isPilot && !isDemo && stageNum === '2' && !aiVisibleFor(id))) { wrap.innerHTML = ''; return; }
   const topk = aiPrelabels[id] || aiPrelabels[String(id)];
   if (!topk || topk.length === 0) {
     wrap.innerHTML = '<div class="ai-none-placeholder">AI 예측 결과가 없습니다. 5P 계층으로 직접 선택하세요.</div>';
@@ -1643,10 +1812,14 @@ function renderAiTopK(id) {
     const prob = t.prob ?? t.score ?? 0;
     const item = document.createElement('div');
     item.className = 'ai-topk-item' + (selPrimarySdg === sdg ? ' selected' : '');
+    // D111: AI 초안(Claude 사전라벨)은 확률이 없다(prob=null). 확률 대신 주목표/연계 구분만 보인다.
+    const probTxt = (t.prob == null && t.score == null)
+      ? (t.role === 'principal' ? 'AI 주목표' : 'AI 연계')
+      : `${(prob * 100).toFixed(1)}%`;
     item.innerHTML = `
       <div class="ai-rank ${ranks[i]}">${medals[i]}</div>
       <div class="ai-sdg-label">${SDG_LABEL[sdg] || sdg}</div>
-      <div class="ai-prob">${(prob * 100).toFixed(1)}%</div>
+      <div class="ai-prob">${probTxt}</div>
     `;
     item.onclick = () => selectSdgFromAi(sdg, i + 1);
     wrap.appendChild(item);
@@ -1896,9 +2069,9 @@ function recId() {
 function isBlindRecordId(id) {
   return !isPilot && !isDemo && stageNum === '2' && blindIdSet.has(String(id));
 }
-// AI Top-3 를 보여도 되는 문항인가 — Stage 2 의 'full' 단계이면서 확인 표본이 아닌 문항만
+// AI Top-3 를 보여도 되는 문항인가 — Stage 2 ⑤ 단계가 열렸고 그 단계 문항이면서 확인 표본이 아닌 문항만(D111)
 function aiVisibleFor(id) {
-  return !isPilot && !isDemo && stageNum === '2' && stage2Phase === 'full' && !blindIdSet.has(String(id));
+  return !isPilot && !isDemo && stageNum === '2' && aiIdSet.has(String(id)) && !blindIdSet.has(String(id));
 }
 
 // ══════════════════════════════════════════
@@ -2011,6 +2184,13 @@ function collectAnnotation() {
     ann.aiShown = !blind && aiVisibleFor(id);
     ann.codebookVersion = STAGE2_CODEBOOK_VERSION;
     if (blind) { ann.chosenFromAI = false; ann.aiRank = null; ann.aiTopK = null; }
+    // D111: ② 이후 단계 레코드에만 작업 구분·라벨 출처를 더한다(① 90건 레코드 구조는 그대로).
+    const t = stage2TaskById[String(id)];
+    if (!blind && t) {
+      ann.task = t.task;
+      ann.label_source = t.labelSource;
+      if (!ann.aiShown) { ann.chosenFromAI = false; ann.aiRank = null; ann.aiTopK = null; }
+    }
   }
   return ann;
 }
@@ -2091,12 +2271,10 @@ function saveAnnotation() {
   showStatus(db ? '✓ 저장 및 Firebase 동기화' : '✓ 저장됨 (로컬)', 'saved');
   updateStats();
   updateMiniGrid();
-  // D109: 적용 표본(blind) 90건을 모두 마치면 1회 안내. 다음 단계는 세션을 다시 시작해야 열린다.
-  if (stage2Phase === 'blind' && !blindDoneNotified &&
-      [...blindIdSet].every(k => annotations[k]?.blindConfirm === true)) {
+  // D109·D111: 현재 단계를 모두 마치면 1회 안내 + 다음 단계를 열 수 있으면 자동으로 연다.
+  if (stage2Cur && !blindDoneNotified && stage2StepDone(stage2Cur)) {
     blindDoneNotified = true;
-    setTimeout(() => alert(`v${STAGE2_CODEBOOK_VERSION} 적용 표본 ${blindIdSet.size}건을 모두 저장했습니다.\n` +
-      '다음 단계(AI 검수)는 관리자가 연 뒤 세션을 다시 시작하면 열립니다.'), 450);
+    setTimeout(() => { stage2Advance = advanceStage2Step(); }, 450);
   }
   // S1-5a: 연타의 2차 클릭이 '다음 레코드'에 실행되는 것을 막기 위해 짧은 디바운스 후 해제.
   // (동기 저장은 이미 끝났고, 이 창은 인접 레코드 훼손·건너뜀만 차단한다.)
@@ -2177,17 +2355,23 @@ window.addEventListener('beforeunload', e => {
 // ══════════════════════════════════════════
 function updateStats() {
   const total = records.length;
-  const done = Object.values(annotations).filter(a => a.tier && a.tier !== 'unknown').length;
-  const ambig = Object.values(annotations).filter(a => a.tier === 'ambiguous').length;
-  const unknown = Object.values(annotations).filter(a => a.tier === 'unknown').length;
-  const remain = total - Object.keys(annotations).length;
+  // D111: Stage 2 는 여러 단계 레코드가 한 노드에 쌓이므로 현재 단계 문항만 센다(① 단계 수치는 이전과 같음).
+  let scoped = annotations;
+  if (stage2Cur) {
+    scoped = {};
+    records.forEach(r => { const k = String(r.id ?? r.sample_id); if (stage2RecSaved(stage2Cur, r)) scoped[k] = annotations[k]; });
+  }
+  const done = Object.values(scoped).filter(a => a.tier && a.tier !== 'unknown').length;
+  const ambig = Object.values(scoped).filter(a => a.tier === 'ambiguous').length;
+  const unknown = Object.values(scoped).filter(a => a.tier === 'unknown').length;
+  const remain = total - Object.keys(scoped).length;
 
   document.getElementById('stat-done').textContent = done;
   document.getElementById('stat-ambig').textContent = ambig;
   document.getElementById('stat-unknown').textContent = unknown;
   document.getElementById('stat-remain').textContent = remain;
-  document.getElementById('progress-label').textContent = `${Object.keys(annotations).length} / ${total} 작업`;
-  document.getElementById('progress-bar').style.width = `${total ? (Object.keys(annotations).length / total * 100) : 0}%`;
+  document.getElementById('progress-label').textContent = `${Object.keys(scoped).length} / ${total} 작업`;
+  document.getElementById('progress-bar').style.width = `${total ? (Object.keys(scoped).length / total * 100) : 0}%`;
 }
 
 function buildMiniGrid() {
