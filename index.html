@@ -933,8 +933,8 @@ let STORAGE_PREFIX = STORAGE_PREFIX_MAIN;
 // ── 코딩북 판본 · Stage 2 개방 플래그 (D108·D109·D110, 2026-10-01) ──
 // 실서비스 반영 전까지 기본값은 현행 유지(Stage 2 전면 차단, 판본 v2.1).
 // 배포 시(박사님 승인 후) 아래 세 값을 바꾼다. 순서: 판본 '2.2' + 확인 표본 개방 → (90건 수거 후) AI 개방.
-const STAGE2_CODEBOOK_VERSION = '2.1';  // Stage 2 코딩북 판본. v2.2 동결(D108, 2026-10-05) 뒤 '2.2'
-const STAGE2_CONFIRM_OPEN = false;       // true: Stage 2 진입 허용, 본인 stage2_crosscheck 90건만 AI 숨김(blind)으로 연다
+const STAGE2_CODEBOOK_VERSION = '2.2';  // Stage 2 코딩북 판본. v2.2 동결 2026-10-02 (D108·D111)
+const STAGE2_CONFIRM_OPEN = true;        // true: Stage 2 진입 허용, 본인 stage2_crosscheck 90건만 AI 숨김(blind)으로 연다
 const STAGE2_AI_OPEN = false;            // true: 본인 90건 완료 + ai_prelabels.json 배치 시 나머지 AI 노출 문항을 연다
 // 모드별 코딩북 판본 (Stage 1 = v2.0(D61), Stage 1-R = v2.1(D96), Stage 2 = 위 플래그)
 const MODE_CODEBOOK_VERSION = { '1': '2.0', '1r': '2.1', '2': STAGE2_CODEBOOK_VERSION };
