@@ -236,6 +236,7 @@ function hasUndefined(v) {
 
 const OPEN22 = { STAGE2_CODEBOOK_VERSION: '2.2', STAGE2_CONFIRM_OPEN: true };
 // 파일 기본값과 무관하게 조건을 고정해 시험한다(배포 커밋에서 플래그를 바꿔도 시험이 유효하도록)
+const REOPEN = { CLOSED_MODES: [] };   // 2026-10-06 닫힌 모드(pilot·1·1r)를 다시 열어 옛 동작이 그대로인지 본다
 const CLOSED = { STAGE2_CODEBOOK_VERSION: '2.1', STAGE2_CONFIRM_OPEN: false, STAGE2_AI_OPEN: false, STAGE2_STEP_MAX: 1 };
 const STEP = (n, ai = false) => ({ ...OPEN22, STAGE2_STEP_MAX: n, STAGE2_AI_OPEN: ai });
 
@@ -432,7 +433,7 @@ async function main() {
 
   console.log('\n[1] Stage 1 (v2.0) — 기존 동작 유지');
   {
-    const e = makeEnv(NEW);
+    const e = makeEnv(NEW, { flags: REOPEN });
     await start(e, 'A', '1');
     const ids = recIds(e);
     check('300건 로드', ids.length === 300, ids.length);
@@ -450,7 +451,7 @@ async function main() {
 
   console.log('\n[2] Stage 1-R (v2.1) — 기존 동작 유지');
   {
-    const e = makeEnv(NEW);
+    const e = makeEnv(NEW, { flags: REOPEN });
     await start(e, 'B', '1r');
     check('67건 로드', recIds(e).length === 67);
     check('배지 Stage 1-R', e.els('header-stage').textContent === 'Stage 1-R · v2.1 재라벨 · Blind');
@@ -577,7 +578,7 @@ async function main() {
       tier: 'certain', redTag: 'B', rationale: '구 기록', beneficiary: { identified: false, providerAware: false, type: null },
       sdgGuardResponses: null, timestamp: '2026-08-01T00:00:00.000Z', durationSec: 10 };
     const st = new Map([['sdg_anno_v2_A_s1', JSON.stringify({ [String(legacy.sample_id)]: legacy })]]);
-    const e = makeEnv(NEW, { storage: st });
+    const e = makeEnv(NEW, { storage: st, flags: REOPEN });
     await start(e, 'A', '1');
     e.run('currentIdx = 0; renderRecord()');
     check('구 레코드 복원(NA + RT-B)', e.run('selPrimarySdg') === 'NA' && e.run('selRedTag') === 'B' && e.run('selNaReason') === 'outside');
@@ -594,9 +595,26 @@ async function main() {
     check('데모 로드', recIds(e).length > 0, recIds(e).length);
     fill(e, { sdg: 'NA', na: 'outside', rt: 'B', why: 'x' });
     check('데모: 신규 필드 없음·NA 규칙 미적용', !('codebookVersion' in collect(e)) && !('task' in collect(e)) && save(e) === true);
-    const p = makeEnv(NEW);
+    const p = makeEnv(NEW, { flags: REOPEN });
     await start(p, 'A', 'pilot');
-    check('파일럿 A 잠금 유지', p.alerts.some(m => m.includes('잠금')));
+    check('파일럿 A 잠금 유지(모드를 다시 열었을 때)', p.alerts.some(m => m.includes('잠금')));
+  }
+
+  console.log('\n[16] 종료된 모드 잠금(2026-10-06): 파일럿·Stage 1·Stage 1-R 진입 차단, Stage 2·데모는 그대로');
+  {
+    for (const [slot, mode] of [['A', '1'], ['B', '1r'], ['C', 'pilot'], ['B', 'pilot']]) {
+      const e = makeEnv(NEW);
+      await start(e, slot, mode);
+      check(`${mode}(${slot}): 종료 안내`, e.alerts.some(m => m.includes('이 단계는 종료됐습니다')), e.alerts);
+      check(`${mode}(${slot}): 레코드 미로드`, recIds(e).length === 0);
+      e.run('checkCanStart()'); check(`${mode}(${slot}): 시작 버튼 비활성`, e.els('start-btn').disabled === true);
+    }
+    const s2 = makeEnv(NEW);
+    await start(s2, 'A', '2');
+    check('Stage 2: 종료 안내 없음·① 90건 로드', !s2.alerts.some(m => m.includes('종료됐습니다')) && recIds(s2).length === 90, [s2.alerts, recIds(s2).length]);
+    const d = makeEnv(NEW);
+    await start(d, 'DEMO', 'demo');
+    check('데모: 그대로 열림', recIds(d).length > 0);
   }
 
   await suiteGate(NEW);
@@ -671,7 +689,7 @@ async function main() {
     for (const [slot, mode] of [['A', '1'], ['B', '1r'], ['DEMO', 'demo']]) {
       const out = [];
       for (const html of [BASE, NEW]) {
-        const e = makeEnv(html);
+        const e = makeEnv(html, html === NEW ? { flags: REOPEN } : {});
         await start(e, slot, mode);
         const recs = recIds(e);
         e.run('currentIdx = 0; renderRecord()');

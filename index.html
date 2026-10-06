@@ -937,6 +937,9 @@ const STAGE2_CODEBOOK_VERSION = '2.2';  // Stage 2 코딩북 판본. v2.2 동결
 const STAGE2_CONFIRM_OPEN = true;        // true: Stage 2 진입 허용, 본인 stage2_crosscheck 90건만 AI 숨김(blind)으로 연다
 const STAGE2_AI_OPEN = false;            // true: ⑤ AI 노출 단계 허용(STAGE2_STEP_MAX ≥ 5 + ai_prelabels.json 무결성 통과도 필요)
 const STAGE2_STEP_MAX = 4;               // 열 수 있는 마지막 단계(1~5). 1 = 확인 표본만(현행). 앞 단계를 다 내면 다음 단계가 자동으로 열린다
+// 종료된 모드(2026-10-06, D111): Stage 2 ② 평가셋 재라벨은 본인의 이전 판정을 보지 않아야 하므로
+// 파일럿·Stage 1·Stage 1-R 화면을 닫는다(Firebase 규칙도 stage2 쓰기만 허용). 다시 열려면 배열에서 뺀다.
+const CLOSED_MODES = ['pilot', '1', '1r'];
 // Stage 2 작업 순서(사람 단위 게이트, D111 채택안 · 통합설계안 §8-3 · 감사를 AI 노출 앞으로).
 // 기록은 전부 sdg_main_2026/stage2/{슬롯}/{sample_id} 한 노드에 쌓는다(규칙 재게시 불필요). 단계별 문항 집합은 서로 겹치지 않는다.
 // 화면에는 단계 이름과 남은 건수만 보인다(목적·선정 사유 비표시).
@@ -1227,6 +1230,11 @@ async function loadBootstrap() {
     info.innerHTML = `<strong>✅ 할당 파일 로드</strong>${statusParts.join(' · ')}`;
   }
 
+  // 종료된 모드는 메뉴에서 흐리게 표시하고 고를 수 없게 한다(CLOSED_MODES).
+  CLOSED_MODES.forEach(v => {
+    const o = document.querySelector(`#stage-select option[value="${v}"]`);
+    if (o) { o.disabled = true; if (!o.textContent.includes('종료된 단계')) o.textContent += ' — 종료된 단계'; }
+  });
   // D109: 확인 표본 라운드를 열었을 때만 Stage 2 모드 표기를 바꾼다(기본값에서는 기존 문구 그대로).
   if (STAGE2_CONFIRM_OPEN) {
     const opt2 = document.querySelector('#stage-select option[value="2"]');
@@ -1306,7 +1314,7 @@ function checkCanStart() {
   const fullName = document.getElementById('annotator-full-name').value.trim();
   // 선택한 모드에 맞는 assignmentMap이 로드돼 있어야 시작 가능
   const map = (stg === 'demo') ? demoAssignmentMap : (stg === 'pilot') ? pilotAssignmentMap : assignmentMap;
-  document.getElementById('start-btn').disabled = !(ann && stg && map && fullName);
+  document.getElementById('start-btn').disabled = !(ann && stg && map && fullName) || CLOSED_MODES.includes(stg);
 }
 
 async function startSession() {
@@ -1314,6 +1322,10 @@ async function startSession() {
   annotatorFullName = document.getElementById('annotator-full-name').value.trim();
   stageNum = document.getElementById('stage-select').value; // '1' | '2' | 'pilot'
   if (!annotatorName || !stageNum || !annotatorFullName) return;
+  if (CLOSED_MODES.includes(stageNum)) {
+    alert('🔒 이 단계는 종료됐습니다.\n지금은 Stage 2만 진행합니다.\n문의: 관리자(박정진)');
+    return;
+  }
 
   isPilot = (stageNum === 'pilot');
   isDemo  = (stageNum === 'demo');

@@ -1,0 +1,80 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "sdg_main_2026": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "timestamp"
+      ],
+      "$stage": {
+        ".validate": "$stage === 'stage1' || $stage === 'stage1r' || $stage === 'stage2'",
+        "$annotator": {
+          ".read": "auth != null",
+          ".write": "auth != null && $stage === 'stage2' && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
+            "annotator": {
+              ".validate": "newData.val() === $annotator"
+            },
+            "stage": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "sample_id": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "tier": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": true
+            }
+          }
+        }
+      }
+    },
+    "sdg_pilot_v2_2026": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "timestamp"
+      ],
+      "$stage": {
+        ".validate": "$stage === 'pilot'",
+        "$annotator": {
+          ".read": "auth != null",
+          ".write": false,
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'tier', 'timestamp'])",
+            "annotator": {
+              ".validate": "newData.val() === $annotator"
+            },
+            "sample_id": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "tier": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": true
+            }
+          }
+        }
+      }
+    },
+    "_legacy_v1": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "_legacy_v1_pilot_20260424": {
+      ".read": "auth != null",
+      ".write": false
+    }
+  },
+  "_comment": "Firebase RTDB 규칙: Stage 2 진행 중 옛 단계 쓰기 전부 닫기(2026-10-06). firebase_rules_stage2_confirm(_PASTE).json 대비 차이 한 곳: sdg_pilot_v2_2026 쓰기 닫음(B 슬롯 포함). sdg_main_2026 은 stage2 쓰기만(그대로). 원복용으로 이전 파일 보존"
+}

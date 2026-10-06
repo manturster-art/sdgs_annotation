@@ -1,0 +1,85 @@
+{
+  "_comment": "Firebase RTDB 규칙: Stage 2 진행 중 옛 단계 쓰기 전부 닫기(2026-10-06). firebase_rules_stage2_confirm(_PASTE).json 대비 차이 한 곳: sdg_pilot_v2_2026 쓰기 닫음(B 슬롯 포함). sdg_main_2026 은 stage2 쓰기만(그대로). 원복용으로 이전 파일 보존",
+  "_purpose": "베이스 대비 변경점: sdg_main_2026 쓰기를 stage2 로만 허용(stage1·stage1r 쓰기는 닫음, 2026-10-01 박사님 결정 D110 후속. 두 단계 완료로 기존 기록 덮어쓰기 방지). 나머지(auth != null, pilot B 슬롯만 쓰기, 필수 필드 검증, $other 허용)는 전부 동일.",
+  "_why_same_node": "확인 표본은 stage1r 처럼 별도 노드를 만들지 않고 stage2 노드에 Stage 1과 같은 키 구조(stage2/{슬롯}/{sample_id})로 받는다. 레코드의 blindConfirm·aiShown·codebookVersion 필드로 blind 여부를 구분한다. 분석 스크립트(stage2_confirmation_effect.py)가 가정한 sdg_stage2_latest.json 구조와 같아 로더를 고치지 않는다.",
+  "_precondition": "게시 전 확인: (1) 코딩북 v2.2 동결·3인 전달 (2) index.html 의 STAGE2_CODEBOOK_VERSION='2.2', STAGE2_CONFIRM_OPEN=true 가 main 에 반영 (3) STAGE2_AI_OPEN 은 false 유지. 규칙만 먼저 열어도 화면 게이트가 닫혀 있으면 쓰기는 일어나지 않는다.",
+  "_client_pair": "index.html: STAGE2_* 플래그 3종, stage2Phase 게이트(본인 90건 blindConfirm 완료 + STAGE2_AI_OPEN + ai_prelabels.json 배치 전에는 90건만 연다), 90건은 AI 개방 뒤에도 blind 렌더, NA + RT-A·B·C 차단(판본 v2.2 이상 모드).",
+  "_howto": "Firebase Console > Realtime Database > 규칙 > 편집기 전체를 firebase_rules_stage2_confirm_PASTE.json 내용으로 교체 > 게시. 게시 전 현행 규칙 전문을 복사해 보관(원복용). 게시 직후 첫 1~2건이 sdg_main_2026/stage2/{슬롯} 아래 blindConfirm=true 로 들어오는지 확인.",
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "sdg_main_2026": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "timestamp"
+      ],
+      "$stage": {
+        ".validate": "$stage === 'stage1' || $stage === 'stage1r' || $stage === 'stage2'",
+        "$annotator": {
+          ".read": "auth != null",
+          ".write": "auth != null && $stage === 'stage2' && ($annotator === 'A' || $annotator === 'B' || $annotator === 'C')",
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'stage', 'tier', 'timestamp'])",
+            "annotator": {
+              ".validate": "newData.val() === $annotator"
+            },
+            "stage": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "sample_id": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "tier": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": true
+            }
+          }
+        }
+      }
+    },
+    "sdg_pilot_v2_2026": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "timestamp"
+      ],
+      "$stage": {
+        ".validate": "$stage === 'pilot'",
+        "$annotator": {
+          ".read": "auth != null",
+          ".write": false,
+          "$sample_id": {
+            ".validate": "newData.exists() && newData.hasChildren(['sample_id', 'annotator', 'tier', 'timestamp'])",
+            "annotator": {
+              ".validate": "newData.val() === $annotator"
+            },
+            "sample_id": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            },
+            "tier": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": true
+            }
+          }
+        }
+      }
+    },
+    "_legacy_v1": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "_legacy_v1_pilot_20260424": {
+      ".read": "auth != null",
+      ".write": false
+    }
+  }
+}
