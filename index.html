@@ -940,6 +940,9 @@ const STAGE2_STEP_MAX = 4;               // 열 수 있는 마지막 단계(1~5)
 // 종료된 모드(2026-10-06, D111): Stage 2 ② 평가셋 재라벨은 본인의 이전 판정을 보지 않아야 하므로
 // 파일럿·Stage 1·Stage 1-R 화면을 닫는다(Firebase 규칙도 stage2 쓰기만 허용). 다시 열려면 배열에서 뺀다.
 const CLOSED_MODES = ['pilot', '1', '1r'];
+// 임시 재방문(2026-10-10): 끝낸 단계로 돌아가 Red Tag 를 고치도록 지정 슬롯·단계만 연다.
+// 이때 저장한 레코드에는 revisit 표지가 붙는다. 정정이 끝나면 slots 를 [] 로 되돌린다.
+const STAGE2_REVISIT = { slots: ['C'], steps: [1, 2], tag: 'C-RT-20261010' };
 // Stage 2 작업 순서(사람 단위 게이트, D111 채택안 · 통합설계안 §8-3 · 감사를 AI 노출 앞으로).
 // 기록은 전부 sdg_main_2026/stage2/{슬롯}/{sample_id} 한 노드에 쌓는다(규칙 재게시 불필요). 단계별 문항 집합은 서로 겹치지 않는다.
 // 화면에는 단계 이름과 남은 건수만 보인다(목적·선정 사유 비표시).
@@ -1509,7 +1512,9 @@ async function startSession() {
   if (stageNum === '2') {
     blindIdSet = new Set((slot.stage2_crosscheck || []).map(String));
     const pick = await chooseStage2Step();
-    setStage2Step(pick.step, pick.notified);
+    const revisit = pickRevisitStep();
+    if (revisit) setStage2Step(revisit, true);
+    else setStage2Step(pick.step, pick.notified);
     if (pick.aiError) alert('AI 초안 검토 단계를 열 수 없습니다(파일 점검 필요).\n문의: 관리자(박정진)');
   }
 
@@ -1632,6 +1637,20 @@ async function chooseStage2Step() {
     if (done[i].no === 1 || await stage2StepOpenable(done[i])) return { step: done[i], notified: true, aiError: stage2AiError };
   }
   return { step: steps[0], notified: blocked, aiError: stage2AiError };
+}
+// 재방문 대상 슬롯이면 끝낸 단계 중 하나를 고르게 한다. 취소·그 밖의 입력은 평소대로 진행.
+let stage2Revisit = false;
+function pickRevisitStep() {
+  stage2Revisit = false;
+  if (!STAGE2_REVISIT.slots.includes(annotatorName)) return null;
+  const opts = stage2StepList.filter(s => STAGE2_REVISIT.steps.includes(s.no) && s.recs.length > 0 && stage2StepDone(s));
+  if (!opts.length) return null;
+  const list = opts.map(s => `${s.no} = ${s.name()} (${s.recs.length}건)`).join('\n');
+  const ans = prompt(`이전 단계 수정 기간입니다. 수정할 단계 번호를 입력하세요.\n${list}\n\n비워 두거나 취소하면 진행 중인 단계로 갑니다.`, '');
+  const step = opts.find(s => String(s.no) === String(ans || '').trim());
+  if (!step) return null;
+  stage2Revisit = true;
+  return step;
 }
 function setStage2Step(step, notified) {
   stage2Cur = step;
@@ -2195,6 +2214,7 @@ function collectAnnotation() {
     ann.blindConfirm = blind;
     ann.aiShown = !blind && aiVisibleFor(id);
     ann.codebookVersion = STAGE2_CODEBOOK_VERSION;
+    if (stage2Revisit) ann.revisit = STAGE2_REVISIT.tag;
     if (blind) { ann.chosenFromAI = false; ann.aiRank = null; ann.aiTopK = null; }
     // D111: ② 이후 단계 레코드에만 작업 구분·라벨 출처를 더한다(① 90건 레코드 구조는 그대로).
     const t = stage2TaskById[String(id)];

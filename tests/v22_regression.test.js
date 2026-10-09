@@ -62,7 +62,7 @@ function makeClassList() {
 }
 // AI 패널을 DOM 에서 떼면 그 안의 ai-topk-wrap 도 함께 빠진다
 const CHILDREN_OF = { 'ai-panel': ['ai-topk-wrap'] };
-function makeEnv(html, { flags = {}, storage = null, prelabels = undefined, lenient = false, firebase = null } = {}) {
+function makeEnv(html, { flags = {}, storage = null, prelabels = undefined, lenient = false, firebase = null, promptAnswer = null } = {}) {
   let src = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   for (const [k, v] of Object.entries(flags)) {
     const re = new RegExp(`const ${k} = [^;]+;`);
@@ -86,6 +86,7 @@ function makeEnv(html, { flags = {}, storage = null, prelabels = undefined, leni
   const getEl = id => (detached.has(id) ? null : raw(id));
   const redtags = ['RT-NONE', 'A', 'B', 'C', 'D'].map(v => { const e = makeEl('rt-' + v); e.dataset.val = v; return e; });
   const alerts = [];
+  const prompts = [];
   const fetches = [];
   const store = storage || new Map();
   const ctx = {
@@ -94,6 +95,7 @@ function makeEnv(html, { flags = {}, storage = null, prelabels = undefined, leni
     Blob: function () {}, TextEncoder,
     setTimeout: (fn) => { fn(); return 0; }, clearTimeout() {}, setInterval() { return 0; }, clearInterval() {},
     alert: m => alerts.push(String(m)), confirm: () => true,
+    prompt: m => { prompts.push(String(m)); return promptAnswer; },
     localStorage: {
       getItem: k => (store.has(k) ? store.get(k) : null),
       setItem: (k, v) => store.set(k, String(v)),
@@ -131,7 +133,7 @@ function makeEnv(html, { flags = {}, storage = null, prelabels = undefined, leni
   vm.createContext(ctx);
   vm.runInContext(src, ctx);
   const run = code => vm.runInContext(code, ctx);
-  return { ctx, run, els: raw, inDom: id => !detached.has(id), redtags, alerts, store, fetches };
+  return { ctx, run, els: raw, inDom: id => !detached.has(id), redtags, alerts, prompts, store, fetches };
 }
 
 async function start(env, slot, mode) {
@@ -615,6 +617,37 @@ async function main() {
     const d = makeEnv(NEW);
     await start(d, 'DEMO', 'demo');
     check('데모: 그대로 열림', recIds(d).length > 0);
+  }
+
+  console.log('\n[17] 임시 재방문(2026-10-10, C 의 ①·② Red Tag 정정)');
+  {
+    const lastSaved = (env, slot, id) => savedS2(env.store, slot)[id];
+    for (const [ans, phase, n, step] of [['1', 'blind', 90, 1], ['2', 'step2', 54, 2]]) {
+      const e = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: ans });
+      await start(e, 'C', '2');
+      check(`C 재방문 ${ans}: 해당 단계·건수`, e.run('stage2Phase') === phase && sameSet(recIds(e), stepIds('C', step)), [e.run('stage2Phase'), recIds(e).length]);
+      const id = recIds(e)[0];
+      e.run('currentIdx = 0; renderRecord()');
+      fill(e, { sdg: 'SDG3', rt: 'A', why: '정정' });
+      save(e);
+      const rec = lastSaved(e, 'C', id);
+      check(`C 재방문 ${ans}: revisit 표지·구조 유지`, rec && rec.revisit === 'C-RT-20261010' && (step === 1 ? rec.blindConfirm === true && !rec.task : rec.task === 'testset_relabel'), rec);
+      check(`C 재방문 ${ans}: AI 비표시·자동 진행 안내 없음`, !e.inDom('ai-panel') && !e.alerts.some(m => m.includes('모두 저장')), e.alerts);
+    }
+    const e0 = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: null });
+    await start(e0, 'C', '2');
+    check('C 취소: 진행 중 단계(③)', e0.run('stage2Phase') === 'step3' && e0.prompts.length === 1);
+    e0.run('currentIdx = 0; renderRecord()'); fill(e0); save(e0);
+    check('C 취소: 평소 저장에 revisit 표지 없음', !('revisit' in lastSaved(e0, 'C', recIds(e0)[0])));
+    const e3 = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: '3' });
+    await start(e3, 'C', '2');
+    check('C 허용 밖 번호(3): 평소대로 ③', e3.run('stage2Phase') === 'step3' && e3.run('stage2Revisit') === false);
+    const ea = makeEnv(NEW, { storage: seededStore('A', 2), promptAnswer: '1' });
+    await start(ea, 'A', '2');
+    check('A: 질문 없음·③ 그대로', ea.prompts.length === 0 && ea.run('stage2Phase') === 'step3');
+    const eoff = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: '1', flags: { STAGE2_REVISIT: { slots: [], steps: [1, 2], tag: 'x' } } });
+    await start(eoff, 'C', '2');
+    check('재방문 끄면(slots []) 질문 없음·③', eoff.prompts.length === 0 && eoff.run('stage2Phase') === 'step3');
   }
 
   await suiteGate(NEW);
