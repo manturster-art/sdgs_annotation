@@ -1842,7 +1842,10 @@ function renderAiTopK(id) {
     const sdg = t.sdg || t.label || '';
     const prob = t.prob ?? t.score ?? 0;
     const item = document.createElement('div');
-    item.className = 'ai-topk-item' + (selPrimarySdg === sdg ? ' selected' : '');
+    // 2026-10-27: 「AI 연계」 칸은 연계목표를 켜고 끈다(Top-3 시절에는 모든 칸이 주목표 후보였다)
+    const isSig = t.role === 'significant';
+    const on = isSig ? selAdditionalSdgs.includes(sdg) : selPrimarySdg === sdg;
+    item.className = 'ai-topk-item' + (on ? ' selected' : '');
     // D111: AI 초안(Claude 사전라벨)은 확률이 없다(prob=null). 확률 대신 주목표/연계 구분만 보인다.
     const probTxt = (t.prob == null && t.score == null)
       ? (t.role === 'principal' ? 'AI 주목표' : 'AI 연계')
@@ -1852,7 +1855,7 @@ function renderAiTopK(id) {
       <div class="ai-sdg-label">${SDG_LABEL[sdg] || sdg}</div>
       <div class="ai-prob">${probTxt}</div>
     `;
-    item.onclick = () => selectSdgFromAi(sdg, i + 1);
+    item.onclick = isSig ? () => toggleAdditionalFromAi(sdg) : () => selectSdgFromAi(sdg, i + 1);
     wrap.appendChild(item);
   });
 }
@@ -2038,6 +2041,13 @@ function selectSdgFromAi(sdg, rank) {
   selectSdg(sdg, rank);
 }
 
+// AI 초안의 「AI 연계」 칸: 주목표는 그대로 두고 연계목표만 켜고 끈다(2026-10-27)
+function toggleAdditionalFromAi(sdg) {
+  if (selPrimarySdg === 'NA') { showStatus('주목표가 NA이면 연계목표를 고르지 않습니다.', 'error'); return; }
+  if (sdg === selPrimarySdg) { showStatus('주목표와 같은 SDG는 연계목표로 고를 수 없습니다.', 'error'); return; }
+  toggleAdditional(sdg);
+}
+
 function clearPrimarySdg() {
   selPrimarySdg = '';
   selP5 = '';
@@ -2081,6 +2091,7 @@ function toggleAdditional(sdg) {
     selAdditionalSdgs.push(sdg);
   }
   renderAdditional();
+  renderAiTopK(recId());   // AI 연계 칸 선택 표시 동기화
 }
 
 function selectRedTag(val) {

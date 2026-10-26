@@ -342,6 +342,27 @@ async function suiteGate(HTML) {
     check('⑤ 레코드 task=targeted·label_source=H_TARGET_AIEXP', a.task === 'targeted' && a.label_source === 'H_TARGET_AIEXP');
     check('⑤ 레코드 aiShown=true·blindConfirm=false·aiTopK 기록', a.aiShown === true && a.blindConfirm === false && Array.isArray(a.aiTopK) && a.aiTopK.length === first.length);
     check('⑤ chosenFromAI=true·aiRank=1', a.chosenFromAI === true && a.aiRank === 1);
+    // 2026-10-27: AI 연계 칸은 연계목표로, AI 주목표 칸은 주목표로(서로 덮어쓰지 않음)
+    const sigId = ids.find(x => (PRE[x] || []).some(t => t.role === 'significant') && PRE[x][0].sdg !== 'NA');
+    check('⑤ 연계 있는 문항 존재(시험 전제)', sigId != null);
+    if (sigId != null) {
+      const p = PRE[sigId], si = p.findIndex(t => t.role === 'significant');
+      e5.run(`currentIdx = ${ids.indexOf(sigId)}; renderRecord()`);
+      // 가짜 DOM 은 innerHTML='' 로 children 이 비지 않는다: 마지막 렌더분(이 문항 칸 수)만 본다
+      const kids = () => { const c = e5.els('ai-topk-wrap').children; return c.slice(c.length - p.length); };
+      kids()[0].onclick();
+      kids()[si].onclick();
+      const st1 = JSON.parse(e5.run('JSON.stringify({ p: selPrimarySdg, add: selAdditionalSdgs, r: window._aiRank })'));
+      check('⑤ AI 주목표 칸 → 주목표, AI 연계 칸 → 연계목표(주목표 유지·aiRank 1)', st1.p === p[0].sdg && st1.add.includes(p[si].sdg) && st1.r === 1, st1);
+      check('⑤ AI 연계 칸 선택 표시', String(kids()[si].className).includes('selected') && String(kids()[0].className).includes('selected'));
+      kids()[si].onclick();
+      const st2 = JSON.parse(e5.run('JSON.stringify({ p: selPrimarySdg, add: selAdditionalSdgs })'));
+      check('⑤ AI 연계 칸 다시 누르면 해제', st2.p === p[0].sdg && !st2.add.includes(p[si].sdg), st2);
+      kids()[si].onclick();
+      e5.run(`selectTier('certain'); selectRedTag('RT-NONE')`);
+      const b = collect(e5);
+      check('⑤ 저장 레코드에 연계목표 기록', b.sdgPath.sdg === p[0].sdg && b.sdgPath.additionalSdgs.includes(p[si].sdg), b.sdgPath);
+    }
     check('⑤ 단계에서도 확인 표본 id 는 AI 불가', e5.run(`aiVisibleFor(${JSON.stringify(CROSS_A[0])})`) === false);
   }
 }
