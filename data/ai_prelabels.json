@@ -1,0 +1,1311 @@
+{
+  "_meta": {
+    "model": "Claude Opus 5.5",
+    "model_id": "claude-opus-5-5",
+    "codebook": "v2.2",
+    "codebook_file": "00-코딩북/coding_book_v2_2.md",
+    "codebook_sha256": "b6be33a40766ae9368b1b733828549c9589bc58b580843c73021f8b9083539cc",
+    "source_file": "v22_labels_1250.json",
+    "source_sha256": "f6123fdb7ee0a7ff8ec73ffab35341b86072e383783152935a542ad0ed0382e0",
+    "prereg": "_workspace/design/stage2_freeze/v22_prelabel/00_사전등록.md",
+    "scope": "⑤ AI 노출 문항(stage2_target_samples ∪ stage2_anchor_samples)만",
+    "replaces": "18b_claude_labels_1250_v1.json (2026-07, v2.0) 사용 중단",
+    "items": 147
+  },
+  "7": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "11": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "17": [
+    {
+      "sdg": "SDG10",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "31": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "38": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "48": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "55": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "72": [
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "77": [
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "90": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "98": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "101": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "112": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "121": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "124": [
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "129": [
+    {
+      "sdg": "SDG6",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "138": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "144": [
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "151": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "154": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "163": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "174": [
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "179": [
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "187": [
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "213": [
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "218": [
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    },
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "233": [
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "251": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "256": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "271": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "282": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "286": [
+    {
+      "sdg": "SDG15",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "307": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "329": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "331": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "344": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "346": [
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "352": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "359": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "368": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "377": [
+    {
+      "sdg": "SDG12",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "382": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "394": [
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "400": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "428": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "434": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "437": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "450": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "462": [
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "464": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "469": [
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "473": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "487": [
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "498": [
+    {
+      "sdg": "SDG15",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "517": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "521": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "533": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "549": [
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    },
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "564": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "572": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "584": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "587": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "591": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "593": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "612": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "622": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "628": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "650": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "657": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "663": [
+    {
+      "sdg": "SDG10",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "668": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "696": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "708": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "713": [
+    {
+      "sdg": "SDG5",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "717": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "722": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "737": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "749": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "751": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "758": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "762": [
+    {
+      "sdg": "SDG9",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "780": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "782": [
+    {
+      "sdg": "SDG13",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "799": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "802": [
+    {
+      "sdg": "SDG10",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "815": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "824": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "838": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "849": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "864": [
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "865": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    },
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "867": [
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "883": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    },
+    {
+      "sdg": "SDG5",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "893": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "908": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "913": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "927": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "928": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "945": [
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "962": [
+    {
+      "sdg": "SDG15",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "970": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1005": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1006": [
+    {
+      "sdg": "SDG6",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "1010": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1012": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1019": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "1021": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1022": [
+    {
+      "sdg": "SDG6",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "1030": [
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    },
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "significant"
+    },
+    {
+      "sdg": "SDG10",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1047": [
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    },
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1066": [
+    {
+      "sdg": "SDG16",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "1072": [
+    {
+      "sdg": "NA",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1081": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1085": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG9",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1087": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG9",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1088": [
+    {
+      "sdg": "SDG4",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1089": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1094": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1097": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1104": [
+    {
+      "sdg": "SDG9",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG8",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1106": [
+    {
+      "sdg": "SDG9",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1109": [
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1110": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1112": [
+    {
+      "sdg": "SDG12",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1115": [
+    {
+      "sdg": "SDG12",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1116": [
+    {
+      "sdg": "SDG12",
+      "prob": null,
+      "role": "principal",
+      "confidence": "low"
+    }
+  ],
+  "1118": [
+    {
+      "sdg": "SDG10",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1123": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "significant"
+    },
+    {
+      "sdg": "SDG12",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1125": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1127": [
+    {
+      "sdg": "SDG12",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1131": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1135": [
+    {
+      "sdg": "SDG12",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1139": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1142": [
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1144": [
+    {
+      "sdg": "SDG14",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1146": [
+    {
+      "sdg": "SDG14",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    },
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1149": [
+    {
+      "sdg": "SDG14",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    },
+    {
+      "sdg": "SDG2",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1150": [
+    {
+      "sdg": "SDG14",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1160": [
+    {
+      "sdg": "SDG6",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG14",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1164": [
+    {
+      "sdg": "SDG6",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG14",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1166": [
+    {
+      "sdg": "SDG15",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG14",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1170": [
+    {
+      "sdg": "SDG1",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1174": [
+    {
+      "sdg": "SDG17",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG3",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1184": [
+    {
+      "sdg": "SDG17",
+      "prob": null,
+      "role": "principal",
+      "confidence": "high"
+    }
+  ],
+  "1185": [
+    {
+      "sdg": "SDG11",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    },
+    {
+      "sdg": "SDG17",
+      "prob": null,
+      "role": "significant"
+    }
+  ],
+  "1190": [
+    {
+      "sdg": "SDG17",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ],
+  "1196": [
+    {
+      "sdg": "SDG17",
+      "prob": null,
+      "role": "principal",
+      "confidence": "medium"
+    }
+  ]
+}

@@ -935,14 +935,14 @@ let STORAGE_PREFIX = STORAGE_PREFIX_MAIN;
 // 배포 시(박사님 승인 후) 아래 세 값을 바꾼다. 순서: 판본 '2.2' + 확인 표본 개방 → (90건 수거 후) AI 개방.
 const STAGE2_CODEBOOK_VERSION = '2.2';  // Stage 2 코딩북 판본. v2.2 동결 2026-10-02 (D108·D111)
 const STAGE2_CONFIRM_OPEN = true;        // true: Stage 2 진입 허용, 본인 stage2_crosscheck 90건만 AI 숨김(blind)으로 연다
-const STAGE2_AI_OPEN = false;            // true: ⑤ AI 노출 단계 허용(STAGE2_STEP_MAX ≥ 5 + ai_prelabels.json 무결성 통과도 필요)
-const STAGE2_STEP_MAX = 4;               // 열 수 있는 마지막 단계(1~5). 1 = 확인 표본만(현행). 앞 단계를 다 내면 다음 단계가 자동으로 열린다
+const STAGE2_AI_OPEN = true;             // true: ⑤ AI 노출 단계 허용(STAGE2_STEP_MAX ≥ 5 + ai_prelabels.json 무결성 통과도 필요)
+const STAGE2_STEP_MAX = 5;               // 열 수 있는 마지막 단계(1~5). 1 = 확인 표본만(현행). 앞 단계를 다 내면 다음 단계가 자동으로 열린다
 // 종료된 모드(2026-10-06, D111): Stage 2 ② 평가셋 재라벨은 본인의 이전 판정을 보지 않아야 하므로
 // 파일럿·Stage 1·Stage 1-R 화면을 닫는다(Firebase 규칙도 stage2 쓰기만 허용). 다시 열려면 배열에서 뺀다.
 const CLOSED_MODES = ['pilot', '1', '1r'];
 // 임시 재방문(2026-10-10): 끝낸 단계로 돌아가 Red Tag 를 고치도록 지정 슬롯·단계만 연다.
 // 이때 저장한 레코드에는 revisit 표지가 붙는다. 정정이 끝나면 slots 를 [] 로 되돌린다.
-const STAGE2_REVISIT = { slots: ['C'], steps: [1, 2], tag: 'C-RT-20261010' };
+const STAGE2_REVISIT = { slots: [], steps: [1, 2], tag: 'C-RT-20261010' };  // 2026-10-27 ⑤ 개방과 함께 닫음(AI 노출 뒤 ①·② 수정 차단)
 // Stage 2 작업 순서(사람 단위 게이트, D111 채택안 · 통합설계안 §8-3 · 감사를 AI 노출 앞으로).
 // 기록은 전부 sdg_main_2026/stage2/{슬롯}/{sample_id} 한 노드에 쌓는다(규칙 재게시 불필요). 단계별 문항 집합은 서로 겹치지 않는다.
 // 화면에는 단계 이름과 남은 건수만 보인다(목적·선정 사유 비표시).

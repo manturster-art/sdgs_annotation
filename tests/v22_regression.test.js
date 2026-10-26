@@ -392,9 +392,10 @@ async function main() {
   console.log('파일 기본값: ' + ['STAGE2_CODEBOOK_VERSION', 'STAGE2_CONFIRM_OPEN', 'STAGE2_AI_OPEN', 'STAGE2_STEP_MAX'].map(k => k + '=' + fileFlag(k)).join(' · '));
 
   console.log('\n[0] 배포 기본값·배정 데이터');
-  // ①~④ 배포(2026-10-03): STEP_MAX ≤ 4·AI 닫힘이면 사전라벨 파일을 싣지 않는다. ⑤ 를 열 때만 둘 다 바꾸고 파일을 넣는다
+  // ①~④ 배포(2026-10-03): STEP_MAX ≤ 4·AI 닫힘이면 사전라벨 파일을 싣지 않는다. ⑤ 를 열 때만 둘 다 바꾸고 파일을 넣는다(⑤ 배포 2026-10-27)
   const smax = Number(fileFlag('STAGE2_STEP_MAX'));
-  check('파일 기본값 STAGE2_STEP_MAX 1~4·AI 닫힘(⑤ 는 열리지 않음)', smax >= 1 && smax <= 4 && fileFlag('STAGE2_AI_OPEN') === 'false');
+  check('파일 기본값: ①~④ 판(상한 1~4·AI 닫힘) 또는 ⑤ 판(상한 5·AI 열림·data/ 사전라벨 있음)',
+    (smax >= 1 && smax <= 4 && fileFlag('STAGE2_AI_OPEN') === 'false') || (smax === 5 && fileFlag('STAGE2_AI_OPEN') === 'true' && PRE_IN_DATA));
   check('AI 닫힌 배포 판에는 data/ai_prelabels.json 없음', fileFlag('STAGE2_AI_OPEN') !== 'false' || !PRE_IN_DATA);
   console.log('  (⑤ 시험용 사전라벨: ' + (PRE_SRC ? (PRE_IN_DATA ? 'data/' : '저장소 밖 사본 ') + path.basename(PRE_SRC) : '없음') + ')');
   for (const slot of ['A', 'B', 'C']) {
@@ -623,7 +624,7 @@ async function main() {
   {
     const lastSaved = (env, slot, id) => savedS2(env.store, slot)[id];
     for (const [ans, phase, n, step] of [['1', 'blind', 90, 1], ['2', 'step2', 54, 2]]) {
-      const e = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: ans });
+      const e = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: ans, flags: { STAGE2_REVISIT: { slots: ['C'], steps: [1, 2], tag: 'C-RT-20261010' } } });
       await start(e, 'C', '2');
       check(`C 재방문 ${ans}: 해당 단계·건수`, e.run('stage2Phase') === phase && sameSet(recIds(e), stepIds('C', step)), [e.run('stage2Phase'), recIds(e).length]);
       const id = recIds(e)[0];
@@ -634,20 +635,24 @@ async function main() {
       check(`C 재방문 ${ans}: revisit 표지·구조 유지`, rec && rec.revisit === 'C-RT-20261010' && (step === 1 ? rec.blindConfirm === true && !rec.task : rec.task === 'testset_relabel'), rec);
       check(`C 재방문 ${ans}: AI 비표시·자동 진행 안내 없음`, !e.inDom('ai-panel') && !e.alerts.some(m => m.includes('모두 저장')), e.alerts);
     }
-    const e0 = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: null });
+    const e0 = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: null, flags: { STAGE2_REVISIT: { slots: ['C'], steps: [1, 2], tag: 'C-RT-20261010' } } });
     await start(e0, 'C', '2');
     check('C 취소: 진행 중 단계(③)', e0.run('stage2Phase') === 'step3' && e0.prompts.length === 1);
     e0.run('currentIdx = 0; renderRecord()'); fill(e0); save(e0);
     check('C 취소: 평소 저장에 revisit 표지 없음', !('revisit' in lastSaved(e0, 'C', recIds(e0)[0])));
-    const e3 = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: '3' });
+    const e3 = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: '3', flags: { STAGE2_REVISIT: { slots: ['C'], steps: [1, 2], tag: 'C-RT-20261010' } } });
     await start(e3, 'C', '2');
     check('C 허용 밖 번호(3): 평소대로 ③', e3.run('stage2Phase') === 'step3' && e3.run('stage2Revisit') === false);
-    const ea = makeEnv(NEW, { storage: seededStore('A', 2), promptAnswer: '1' });
+    const ea = makeEnv(NEW, { storage: seededStore('A', 2), promptAnswer: '1', flags: { STAGE2_REVISIT: { slots: ['C'], steps: [1, 2], tag: 'C-RT-20261010' } } });
     await start(ea, 'A', '2');
     check('A: 질문 없음·③ 그대로', ea.prompts.length === 0 && ea.run('stage2Phase') === 'step3');
     const eoff = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: '1', flags: { STAGE2_REVISIT: { slots: [], steps: [1, 2], tag: 'x' } } });
     await start(eoff, 'C', '2');
     check('재방문 끄면(slots []) 질문 없음·③', eoff.prompts.length === 0 && eoff.run('stage2Phase') === 'step3');
+    // 2026-10-27 ⑤ 개방과 함께 파일 기본값을 닫음: 재방문 시험은 위처럼 플래그를 주입해서 돈다
+    const edef = makeEnv(NEW, { storage: seededStore('C', 2), promptAnswer: '1' });
+    await start(edef, 'C', '2');
+    check('파일 기본값: 재방문 닫힘(C 질문 없음·③)', edef.prompts.length === 0 && edef.run('stage2Phase') === 'step3');
   }
 
   await suiteGate(NEW);
@@ -667,8 +672,14 @@ async function main() {
     }
     const e4 = makeEnv(NEW, { storage: seededStore('A', 4) });
     await start(e4, 'A', '2');
-    check('기본값: ①~④ 완료 → ⑤ 안 열림(④ 유지)·AI 패널 DOM 없음', e4.run('stage2Phase') === 'step4' && !e4.inDom('ai-panel'), e4.run('stage2Phase'));
-    check('기본값: ①~④ 완료 뒤에도 사전라벨 요청 0', !e4.fetches.includes('data/ai_prelabels.json'));
+    if (fileFlag('STAGE2_AI_OPEN') === 'true') {
+      // ⑤ 배포 판(2026-10-27): ①~④ 완료 → ⑤ 개방·본인 ⑤ 문항만·AI 패널 표시·사전라벨 요청
+      check('기본값(⑤ 판): ①~④ 완료 → ⑤ 개방·⑤ 건수 일치', e4.run('stage2Phase') === 'step5' && sameSet(recIds(e4), stepIds('A', 5)), [e4.run('stage2Phase'), recIds(e4).length]);
+      check('기본값(⑤ 판): ⑤ 에서 AI 패널 DOM 있음·사전라벨 요청', e4.inDom('ai-panel') && e4.fetches.includes('data/ai_prelabels.json'));
+    } else {
+      check('기본값: ①~④ 완료 → ⑤ 안 열림(④ 유지)·AI 패널 DOM 없음', e4.run('stage2Phase') === 'step4' && !e4.inDom('ai-panel'), e4.run('stage2Phase'));
+      check('기본값: ①~④ 완료 뒤에도 사전라벨 요청 0', !e4.fetches.includes('data/ai_prelabels.json'));
+    }
     // 세션 안 ③ → ④ 자동 개방(기본값)
     const e3 = makeEnv(NEW, { storage: seededStore('C', 2) });
     await start(e3, 'C', '2');
